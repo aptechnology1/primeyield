@@ -1,0 +1,70 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { getReferralInfo } from "@/lib/user.functions";
+import { formatNaira, formatDateTime } from "@/lib/format";
+import { toast } from "sonner";
+import { Copy } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/referrals")({
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({ queryKey: ["referrals"], queryFn: () => (getReferralInfo as any)() }),
+  component: ReferralsPage,
+});
+
+function ReferralsPage() {
+  const fetch = useServerFn(getReferralInfo);
+  const { data } = useSuspenseQuery({ queryKey: ["referrals"], queryFn: () => fetch() });
+  const link = typeof window !== "undefined" && data.referral_code
+    ? `${window.location.origin}/auth?ref=${data.referral_code}` : "";
+
+  return (
+    <div className="px-5 pt-6 pb-6 space-y-6">
+      <header>
+        <h1 className="text-2xl font-bold tracking-tight">Referrals</h1>
+        <p className="text-sm text-muted-foreground">Earn on 3 levels of your network.</p>
+      </header>
+
+      <div className="bg-foreground text-background rounded-2xl p-5 space-y-4">
+        <p className="text-[10px] uppercase tracking-widest opacity-60">Your link</p>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-white/10 px-3 py-2.5 rounded border border-white/5 font-mono text-[10px] truncate">{link}</div>
+          <button onClick={() => { navigator.clipboard.writeText(link); toast.success("Copied"); }}
+            className="bg-background text-foreground px-3 py-2.5 rounded text-[10px] font-bold inline-flex items-center gap-1">
+            <Copy className="size-3" /> COPY
+          </button>
+        </div>
+        <p className="text-[11px] opacity-60">Code: <span className="font-mono font-bold opacity-100">{data.referral_code}</span></p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {([1, 2, 3] as const).map((lvl) => (
+          <div key={lvl} className="bg-card border border-border p-4 rounded-xl text-center">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Level {lvl}</p>
+            <p className="text-2xl font-bold font-mono mt-1">{(data.counts as any)[`l${lvl}`]}</p>
+            <p className="text-[10px] text-primary font-mono mt-1">{formatNaira((data.totals as any)[`l${lvl}`])}</p>
+          </div>
+        ))}
+      </div>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Earnings history</h2>
+        {data.earnings.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No referral earnings yet.</p>
+        ) : (
+          <div className="divide-y divide-border border-t border-b border-border">
+            {data.earnings.map((e: any) => (
+              <div key={e.id} className="py-3 flex justify-between items-center">
+                <div>
+                  <p className="text-xs font-bold">L{e.level} · {e.source_type}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatDateTime(e.created_at)}</p>
+                </div>
+                <span className="text-xs font-mono font-bold text-primary">+{formatNaira(e.amount)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
