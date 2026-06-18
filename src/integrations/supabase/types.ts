@@ -288,6 +288,10 @@ export type Database = {
       settings: {
         Row: {
           daily_checkin_amount: number
+          dashboard_popup_buttons: Json
+          dashboard_popup_enabled: boolean
+          dashboard_popup_message: string
+          dashboard_popup_title: string
           id: number
           manual_bank_account: string
           manual_bank_account_name: string
@@ -308,6 +312,10 @@ export type Database = {
         }
         Insert: {
           daily_checkin_amount?: number
+          dashboard_popup_buttons?: Json
+          dashboard_popup_enabled?: boolean
+          dashboard_popup_message?: string
+          dashboard_popup_title?: string
           id?: number
           manual_bank_account?: string
           manual_bank_account_name?: string
@@ -328,6 +336,10 @@ export type Database = {
         }
         Update: {
           daily_checkin_amount?: number
+          dashboard_popup_buttons?: Json
+          dashboard_popup_enabled?: boolean
+          dashboard_popup_message?: string
+          dashboard_popup_title?: string
           id?: number
           manual_bank_account?: string
           manual_bank_account_name?: string

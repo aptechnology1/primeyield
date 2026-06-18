@@ -4,6 +4,7 @@ import { useMutation, useSuspenseQuery, queryOptions, useQueryClient } from "@ta
 import { getDashboard, claimDailyCheckin } from "@/lib/user.functions";
 import { formatNaira, formatDateTime } from "@/lib/format";
 import { BrandMark } from "@/components/BrandMark";
+import { DashboardPopup } from "@/components/DashboardPopup";
 import { Zap, Copy, ArrowUpRight, ArrowDownLeft, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,6 +46,12 @@ function Dashboard() {
 
   return (
     <div className="px-5 pt-6 pb-6 space-y-6">
+      <DashboardPopup
+        enabled={!!data.settings?.dashboard_popup_enabled}
+        title={data.settings?.dashboard_popup_title ?? ""}
+        message={data.settings?.dashboard_popup_message ?? ""}
+        buttons={(data.settings?.dashboard_popup_buttons as any) ?? []}
+      />
       <header className="flex items-center justify-between -mt-2 mb-2">
         <BrandMark name={data.settings?.site_name ?? "Horizon"} />
         <div className="flex items-center gap-2">
