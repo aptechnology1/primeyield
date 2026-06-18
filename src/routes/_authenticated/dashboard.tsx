@@ -95,7 +95,7 @@ function Dashboard() {
               <div>
                 <p className="text-sm font-semibold">Daily rewards</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {data.checkedInToday ? "You've checked in today" : `Check in to earn ${formatNaira(data.settings.daily_checkin_amount)}`}
+                  {data.checkedInToday ? "You've checked in today" : `Check in to earn ${formatNaira(data.settings?.daily_checkin_amount ?? 0)}`}
                 </p>
               </div>
             </div>
