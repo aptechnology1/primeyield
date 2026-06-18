@@ -34,7 +34,7 @@ function AdminLayout() {
       </header>
       <nav className="overflow-x-auto px-3 py-3 border-b border-border flex gap-2 sticky top-[57px] bg-background z-20">
         {tabs.map((t) => {
-          const active = t.exact ? path === t.to : path.startsWith(t.to);
+          const active = (t as any).exact ? path === t.to : path.startsWith(t.to);
           return (
             <Link key={t.to} to={t.to} className={cn(
               "px-3 py-1.5 rounded-full text-xs font-bold uppercase whitespace-nowrap",
