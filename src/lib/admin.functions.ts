@@ -306,6 +306,13 @@ const settingsSchema = z.object({
   manual_bank_name: z.string().max(200),
   manual_bank_account: z.string().max(100),
   manual_bank_account_name: z.string().max(200),
+  dashboard_popup_enabled: z.boolean(),
+  dashboard_popup_title: z.string().max(200),
+  dashboard_popup_message: z.string().max(2000),
+  dashboard_popup_buttons: z.array(z.object({
+    title: z.string().min(1).max(80),
+    link: z.string().min(1).max(500),
+  })).max(8),
 });
 
 export const adminUpdateSettings = createServerFn({ method: "POST" })

@@ -41,6 +41,12 @@ function SettingsPage() {
       manual_bank_name: form.manual_bank_name ?? "",
       manual_bank_account: form.manual_bank_account ?? "",
       manual_bank_account_name: form.manual_bank_account_name ?? "",
+      dashboard_popup_enabled: !!form.dashboard_popup_enabled,
+      dashboard_popup_title: form.dashboard_popup_title ?? "",
+      dashboard_popup_message: form.dashboard_popup_message ?? "",
+      dashboard_popup_buttons: Array.isArray(form.dashboard_popup_buttons)
+        ? form.dashboard_popup_buttons.filter((b: any) => b?.title && b?.link)
+        : [],
     } as any }),
     onSuccess: () => {
       toast.success("Settings saved");
