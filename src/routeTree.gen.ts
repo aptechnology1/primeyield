@@ -21,6 +21,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin/plans'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -81,6 +82,11 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
+  '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/referrals'
     | '/withdraw'
+    | '/admin/plans'
     | '/admin/users'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/referrals'
     | '/withdraw'
+    | '/admin/plans'
     | '/admin/users'
     | '/admin'
   id:
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/referrals'
     | '/_authenticated/withdraw'
+    | '/_authenticated/admin/plans'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
@@ -256,16 +268,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/plans': {
+      id: '/_authenticated/admin/plans'
+      path: '/plans'
+      fullPath: '/admin/plans'
+      preLoaderRoute: typeof AuthenticatedAdminPlansRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   }
