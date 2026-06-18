@@ -51,8 +51,6 @@ async function accrueRoi(supabase: any, userId: string) {
     const newDaysPaid = inv.days_paid + daysToPay;
     const isComplete = newDaysPaid >= inv.duration_days;
 
-    // credit ROI
-    await supabase.rpc("noop_placeholder").catch(() => {});
     const { data: wallet } = await supabase
       .from("wallets").select("balance,total_earned").eq("user_id", userId).maybeSingle();
     if (!wallet) continue;
