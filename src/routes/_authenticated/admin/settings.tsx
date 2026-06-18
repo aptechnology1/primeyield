@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -110,6 +112,75 @@ function SettingsPage() {
         <Field label="Manual bank name"><Input value={form.manual_bank_name ?? ""} onChange={(e) => set("manual_bank_name", e.target.value)} /></Field>
         <Field label="Manual bank account number"><Input value={form.manual_bank_account ?? ""} onChange={(e) => set("manual_bank_account", e.target.value)} /></Field>
         <Field label="Manual bank account name"><Input value={form.manual_bank_account_name ?? ""} onChange={(e) => set("manual_bank_account_name", e.target.value)} /></Field>
+      </Section>
+
+      <Section title="Dashboard popup">
+        <Toggle
+          label="Show popup on dashboard"
+          value={!!form.dashboard_popup_enabled}
+          onChange={(v) => set("dashboard_popup_enabled", v)}
+        />
+        <Field label="Title">
+          <Input
+            value={form.dashboard_popup_title ?? ""}
+            onChange={(e) => set("dashboard_popup_title", e.target.value)}
+            placeholder="Welcome"
+          />
+        </Field>
+        <Field label="Message">
+          <Textarea
+            rows={4}
+            value={form.dashboard_popup_message ?? ""}
+            onChange={(e) => set("dashboard_popup_message", e.target.value)}
+            placeholder="Write the message users will see…"
+          />
+        </Field>
+        <div className="space-y-2">
+          <Label className="text-xs">Buttons</Label>
+          {(form.dashboard_popup_buttons ?? []).map((btn: any, i: number) => (
+            <div key={i} className="grid grid-cols-[1fr_1.5fr_auto] gap-2 items-center">
+              <Input
+                value={btn.title ?? ""}
+                placeholder="Title"
+                onChange={(e) => {
+                  const arr = [...(form.dashboard_popup_buttons ?? [])];
+                  arr[i] = { ...arr[i], title: e.target.value };
+                  set("dashboard_popup_buttons", arr);
+                }}
+              />
+              <Input
+                value={btn.link ?? ""}
+                placeholder="https://… or /plans"
+                onChange={(e) => {
+                  const arr = [...(form.dashboard_popup_buttons ?? [])];
+                  arr[i] = { ...arr[i], link: e.target.value };
+                  set("dashboard_popup_buttons", arr);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const arr = [...(form.dashboard_popup_buttons ?? [])];
+                  arr.splice(i, 1);
+                  set("dashboard_popup_buttons", arr);
+                }}
+                className="size-9 inline-flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-destructive"
+                aria-label="Remove button"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+          ))}
+          {(form.dashboard_popup_buttons ?? []).length < 8 && (
+            <button
+              type="button"
+              onClick={() => set("dashboard_popup_buttons", [...(form.dashboard_popup_buttons ?? []), { title: "", link: "" }])}
+              className="w-full inline-flex items-center justify-center gap-1 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="size-3" /> Add button
+            </button>
+          )}
+        </div>
       </Section>
 
       <Button className="w-full h-11" disabled={mut.isPending} onClick={() => mut.mutate()}>
