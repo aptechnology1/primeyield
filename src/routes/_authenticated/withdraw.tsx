@@ -69,8 +69,8 @@ function WithdrawPage() {
         <div className="space-y-4">
           <div className="bg-card border border-border p-4 rounded-xl text-sm space-y-1">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Pays out to</p>
-            <p className="font-semibold">{dash.profile.bank_account_name}</p>
-            <p className="font-mono text-xs">{dash.profile.bank_name} · {dash.profile.bank_account_no}</p>
+            <p className="font-semibold">{dash.profile?.bank_account_name}</p>
+            <p className="font-mono text-xs">{dash.profile?.bank_name} · {dash.profile?.bank_account_no}</p>
           </div>
           <Input type="number" placeholder={`Amount (min ₦${dash.settings?.min_withdrawal})`} value={amount} onChange={(e) => setAmount(e.target.value)} min={dash.settings?.min_withdrawal ?? 0} max={Math.min(withdrawable, Number(dash.settings?.max_withdrawal ?? Infinity))} step={100} />
           {Number(dash.settings?.withdrawal_fee_pct ?? 0) > 0 && amount && (
