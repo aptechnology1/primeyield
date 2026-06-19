@@ -313,6 +313,10 @@ const settingsSchema = z.object({
     title: z.string().min(1).max(80),
     link: z.string().min(1).max(500),
   })).max(8),
+  support_title: z.string().max(100),
+  support_agent_name: z.string().max(100),
+  support_agent_details: z.string().max(2000),
+  support_contact_link: z.string().max(500),
 });
 
 export const adminUpdateSettings = createServerFn({ method: "POST" })
