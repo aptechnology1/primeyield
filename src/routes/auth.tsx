@@ -42,16 +42,19 @@ function AuthPage() {
         navigate({ to: "/dashboard" });
       } else {
         if (password.length < 6) throw new Error("Password must be at least 6 characters");
-        const { error } = await supabase.auth.signUp({
+        const { error: signUpErr } = await supabase.auth.signUp({
           email, password,
           options: {
             emailRedirectTo: window.location.origin + "/dashboard",
             data: { full_name: fullName, referral_code: ref || undefined },
           },
         });
-        if (error) throw error;
-        toast.success("Account created — you can sign in now");
-        setMode("signin");
+        if (signUpErr) throw signUpErr;
+        // Auto sign-in (email confirmation is disabled)
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) throw signInErr;
+        toast.success("Welcome to Horizon");
+        navigate({ to: "/dashboard" });
       }
     } catch (err: any) {
       toast.error(err.message ?? "Something went wrong");
