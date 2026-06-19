@@ -78,6 +78,14 @@ function ProfilePage() {
         <span className="text-xs text-muted-foreground">→</span>
       </Link>
 
+      <Link to="/support" className="flex items-center justify-between bg-card border border-border p-4 rounded-xl">
+        <div className="flex items-center gap-3">
+          <LifeBuoy className="size-5 text-primary" />
+          <span className="text-sm font-bold">Support</span>
+        </div>
+        <span className="text-xs text-muted-foreground">→</span>
+      </Link>
+
       <section className="space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Personal</h2>
         <div className="space-y-1.5">
