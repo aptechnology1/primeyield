@@ -1,0 +1,6 @@
+
+ALTER TABLE public.settings
+  ADD COLUMN IF NOT EXISTS support_title TEXT NOT NULL DEFAULT 'Support',
+  ADD COLUMN IF NOT EXISTS support_agent_name TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS support_agent_details TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS support_contact_link TEXT NOT NULL DEFAULT '';
