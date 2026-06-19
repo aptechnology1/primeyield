@@ -49,6 +49,10 @@ function SettingsPage() {
       dashboard_popup_buttons: Array.isArray(form.dashboard_popup_buttons)
         ? form.dashboard_popup_buttons.filter((b: any) => b?.title && b?.link)
         : [],
+      support_title: form.support_title ?? "Support",
+      support_agent_name: form.support_agent_name ?? "",
+      support_agent_details: form.support_agent_details ?? "",
+      support_contact_link: form.support_contact_link ?? "",
     } as any }),
     onSuccess: () => {
       toast.success("Settings saved");
