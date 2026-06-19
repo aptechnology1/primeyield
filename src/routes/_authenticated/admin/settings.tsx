@@ -187,6 +187,38 @@ function SettingsPage() {
         </div>
       </Section>
 
+      <Section title="Support page">
+        <Field label="Page title">
+          <Input
+            value={form.support_title ?? ""}
+            onChange={(e) => set("support_title", e.target.value)}
+            placeholder="Support"
+          />
+        </Field>
+        <Field label="Agent / team name">
+          <Input
+            value={form.support_agent_name ?? ""}
+            onChange={(e) => set("support_agent_name", e.target.value)}
+            placeholder="e.g. Sarah from Horizon Support"
+          />
+        </Field>
+        <Field label="Details / message to users">
+          <Textarea
+            rows={5}
+            value={form.support_agent_details ?? ""}
+            onChange={(e) => set("support_agent_details", e.target.value)}
+            placeholder="Email, WhatsApp number, working hours, etc."
+          />
+        </Field>
+        <Field label="Contact link (WhatsApp / Telegram / mailto:)">
+          <Input
+            value={form.support_contact_link ?? ""}
+            onChange={(e) => set("support_contact_link", e.target.value)}
+            placeholder="https://wa.me/234… or mailto:support@…"
+          />
+        </Field>
+      </Section>
+
       <Button className="w-full h-11" disabled={mut.isPending} onClick={() => mut.mutate()}>
         {mut.isPending ? "Saving…" : "Save settings"}
       </Button>
