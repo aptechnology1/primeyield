@@ -305,6 +305,10 @@ export type Database = {
           ref_l3_pct: number
           ref_source: Database["public"]["Enums"]["referral_source"]
           site_name: string
+          support_agent_details: string
+          support_agent_name: string
+          support_contact_link: string
+          support_title: string
           updated_at: string
           welcome_bonus_amount: number
           welcome_bonus_withdrawable: boolean
@@ -329,6 +333,10 @@ export type Database = {
           ref_l3_pct?: number
           ref_source?: Database["public"]["Enums"]["referral_source"]
           site_name?: string
+          support_agent_details?: string
+          support_agent_name?: string
+          support_contact_link?: string
+          support_title?: string
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
@@ -353,6 +361,10 @@ export type Database = {
           ref_l3_pct?: number
           ref_source?: Database["public"]["Enums"]["referral_source"]
           site_name?: string
+          support_agent_details?: string
+          support_agent_name?: string
+          support_contact_link?: string
+          support_title?: string
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
