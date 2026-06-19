@@ -23,11 +23,16 @@ export const getPublicSettings = createServerFn({ method: "GET" }).handler(async
   };
 });
 
+async function getAdmin() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
+
 // ============================================================
-// ROI ACCRUAL HELPER (called inside auth-required server fns)
+// ROI ACCRUAL HELPER
 // ============================================================
-async function accrueRoi(supabase: any, userId: string) {
-  const { data: investments } = await supabase
+async function accrueRoi(admin: any, userId: string) {
+  const { data: investments } = await admin
     .from("investments")
     .select("*")
     .eq("user_id", userId)
@@ -51,37 +56,36 @@ async function accrueRoi(supabase: any, userId: string) {
     const newDaysPaid = inv.days_paid + daysToPay;
     const isComplete = newDaysPaid >= inv.duration_days;
 
-    const { data: wallet } = await supabase
+    const { data: wallet } = await admin
       .from("wallets").select("balance,total_earned").eq("user_id", userId).maybeSingle();
     if (!wallet) continue;
 
     let newBalance = Number(wallet.balance) + payout;
-    let newEarned = Number(wallet.total_earned) + payout;
+    const newEarned = Number(wallet.total_earned) + payout;
 
-    // principal return on completion
     if (isComplete && inv.return_principal) {
       newBalance += Number(inv.amount);
     }
 
-    await supabase.from("wallets").update({
+    await admin.from("wallets").update({
       balance: newBalance, total_earned: newEarned, updated_at: new Date().toISOString(),
     }).eq("user_id", userId);
 
-    await supabase.from("investments").update({
+    await admin.from("investments").update({
       days_paid: newDaysPaid,
       total_earned: Number(inv.total_earned) + payout,
       last_payout_at: new Date(last.getTime() + daysToPay * msPerDay).toISOString(),
       status: isComplete ? "completed" : "active",
     }).eq("id", inv.id);
 
-    await supabase.from("transactions").insert({
+    await admin.from("transactions").insert({
       user_id: userId, type: "roi", amount: payout,
       description: `ROI from ${inv.plan_name} (${daysToPay} day${daysToPay > 1 ? "s" : ""})`,
       meta: { investment_id: inv.id, days: daysToPay },
     });
 
     if (isComplete && inv.return_principal) {
-      await supabase.from("transactions").insert({
+      await admin.from("transactions").insert({
         user_id: userId, type: "refund", amount: Number(inv.amount),
         description: `Principal returned from ${inv.plan_name}`,
         meta: { investment_id: inv.id },
@@ -97,7 +101,8 @@ export const getDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    await accrueRoi(supabase, userId);
+    const admin = await getAdmin();
+    await accrueRoi(admin, userId);
 
     const [profileQ, walletQ, invQ, txQ, checkinQ, settingsQ, refStatsQ] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
@@ -136,14 +141,15 @@ export const getDashboard = createServerFn({ method: "GET" })
 export const claimDailyCheckin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+    const { userId } = context;
+    const admin = await getAdmin();
     const today = new Date().toISOString().slice(0, 10);
 
-    const { data: settings } = await supabase.from("settings").select("daily_checkin_amount").eq("id", 1).maybeSingle();
+    const { data: settings } = await admin.from("settings").select("daily_checkin_amount").eq("id", 1).maybeSingle();
     const amount = Number(settings?.daily_checkin_amount ?? 0);
     if (amount <= 0) throw new Error("Daily check-in is disabled");
 
-    const { error } = await supabase.from("daily_checkins").insert({
+    const { error } = await admin.from("daily_checkins").insert({
       user_id: userId, checkin_date: today, amount,
     });
     if (error) {
@@ -151,12 +157,12 @@ export const claimDailyCheckin = createServerFn({ method: "POST" })
       throw error;
     }
 
-    const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", userId).maybeSingle();
-    await supabase.from("wallets").update({
+    const { data: wallet } = await admin.from("wallets").select("balance").eq("user_id", userId).maybeSingle();
+    await admin.from("wallets").update({
       balance: Number(wallet?.balance ?? 0) + amount, updated_at: new Date().toISOString(),
     }).eq("user_id", userId);
 
-    await supabase.from("transactions").insert({
+    await admin.from("transactions").insert({
       user_id: userId, type: "daily_checkin", amount, description: "Daily check-in reward",
     });
     return { amount };
@@ -174,12 +180,12 @@ export const listPlans = createServerFn({ method: "GET" })
   });
 
 // ============================================================
-// REFERRAL HELPER (used by deposit + investment)
+// REFERRAL HELPER
 // ============================================================
 async function payReferralCommissions(
-  supabase: any, sourceUserId: string, sourceAmount: number, sourceType: "deposit" | "investment" | "roi"
+  admin: any, sourceUserId: string, sourceAmount: number, sourceType: "deposit" | "investment" | "roi"
 ) {
-  const { data: settings } = await supabase.from("settings").select("ref_l1_pct,ref_l2_pct,ref_l3_pct,ref_source").eq("id", 1).maybeSingle();
+  const { data: settings } = await admin.from("settings").select("ref_l1_pct,ref_l2_pct,ref_l3_pct,ref_source").eq("id", 1).maybeSingle();
   if (!settings || settings.ref_source !== sourceType) return;
 
   const pcts: Record<number, number> = {
@@ -188,7 +194,7 @@ async function payReferralCommissions(
     3: Number(settings.ref_l3_pct),
   };
 
-  const { data: chain } = await supabase
+  const { data: chain } = await admin
     .from("referrals").select("referrer_id,level").eq("referred_id", sourceUserId);
 
   for (const r of chain ?? []) {
@@ -196,18 +202,18 @@ async function payReferralCommissions(
     if (!pct || pct <= 0) continue;
     const amt = sourceAmount * (pct / 100);
     if (amt <= 0) continue;
-    const { data: w } = await supabase.from("wallets").select("balance,referral_earned").eq("user_id", r.referrer_id).maybeSingle();
+    const { data: w } = await admin.from("wallets").select("balance,referral_earned").eq("user_id", r.referrer_id).maybeSingle();
     if (!w) continue;
-    await supabase.from("wallets").update({
+    await admin.from("wallets").update({
       balance: Number(w.balance) + amt,
       referral_earned: Number(w.referral_earned) + amt,
       updated_at: new Date().toISOString(),
     }).eq("user_id", r.referrer_id);
-    await supabase.from("referral_earnings").insert({
+    await admin.from("referral_earnings").insert({
       user_id: r.referrer_id, from_user_id: sourceUserId, level: r.level,
       source_type: sourceType, source_amount: sourceAmount, amount: amt,
     });
-    await supabase.from("transactions").insert({
+    await admin.from("transactions").insert({
       user_id: r.referrer_id, type: "referral", amount: amt,
       description: `Level ${r.level} referral commission`,
       meta: { from: sourceUserId, source_type: sourceType, pct },
@@ -223,24 +229,25 @@ export const purchasePlan = createServerFn({ method: "POST" })
   .inputValidator((d: { planId: string; amount: number }) =>
     z.object({ planId: z.string().uuid(), amount: z.number().positive() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    await accrueRoi(supabase, userId);
+    const { userId } = context;
+    const admin = await getAdmin();
+    await accrueRoi(admin, userId);
 
-    const { data: plan } = await supabase.from("plans").select("*").eq("id", data.planId).eq("is_active", true).maybeSingle();
+    const { data: plan } = await admin.from("plans").select("*").eq("id", data.planId).eq("is_active", true).maybeSingle();
     if (!plan) throw new Error("Plan not found");
     if (data.amount < Number(plan.min_amount)) throw new Error(`Minimum is ₦${plan.min_amount}`);
     if (data.amount > Number(plan.max_amount)) throw new Error(`Maximum is ₦${plan.max_amount}`);
 
-    const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", userId).maybeSingle();
+    const { data: wallet } = await admin.from("wallets").select("balance").eq("user_id", userId).maybeSingle();
     if (!wallet || Number(wallet.balance) < data.amount) throw new Error("Insufficient balance");
 
-    await supabase.from("wallets").update({
+    await admin.from("wallets").update({
       balance: Number(wallet.balance) - data.amount, updated_at: new Date().toISOString(),
     }).eq("user_id", userId);
 
     const startedAt = new Date();
     const endsAt = new Date(startedAt.getTime() + plan.duration_days * 86_400_000);
-    const { data: inv, error: invErr } = await supabase.from("investments").insert({
+    const { data: inv, error: invErr } = await admin.from("investments").insert({
       user_id: userId, plan_id: plan.id, plan_name: plan.name,
       amount: data.amount, daily_roi_pct: plan.daily_roi_pct,
       duration_days: plan.duration_days, return_principal: plan.return_principal,
@@ -248,12 +255,12 @@ export const purchasePlan = createServerFn({ method: "POST" })
     }).select().single();
     if (invErr) throw invErr;
 
-    await supabase.from("transactions").insert({
+    await admin.from("transactions").insert({
       user_id: userId, type: "investment", amount: data.amount,
       description: `Purchased ${plan.name}`, meta: { investment_id: inv.id, plan_id: plan.id },
     });
 
-    await payReferralCommissions(supabase, userId, data.amount, "investment");
+    await payReferralCommissions(admin, userId, data.amount, "investment");
     return { ok: true };
   });
 
@@ -268,7 +275,8 @@ export const initPaystackDeposit = createServerFn({ method: "POST" })
     const secret = process.env.PAYSTACK_SECRET_KEY;
     if (!secret) throw new Error("Paystack not configured. Please contact admin.");
 
-    const { data: profile } = await context.supabase.from("profiles").select("email").eq("id", context.userId).maybeSingle();
+    const admin = await getAdmin();
+    const { data: profile } = await admin.from("profiles").select("email").eq("id", context.userId).maybeSingle();
     const email = profile?.email;
     if (!email) throw new Error("Email missing on profile");
 
@@ -284,10 +292,11 @@ export const initPaystackDeposit = createServerFn({ method: "POST" })
     const json: any = await resp.json();
     if (!json.status) throw new Error(json.message || "Paystack init failed");
 
-    await context.supabase.from("deposits").insert({
+    const { error: insErr } = await admin.from("deposits").insert({
       user_id: context.userId, amount: data.amount, method: "paystack",
       paystack_ref: json.data.reference, status: "pending",
     });
+    if (insErr) throw insErr;
     return { authorization_url: json.data.authorization_url, reference: json.data.reference };
   });
 
@@ -298,38 +307,56 @@ export const verifyPaystackDeposit = createServerFn({ method: "POST" })
     const secret = process.env.PAYSTACK_SECRET_KEY;
     if (!secret) throw new Error("Paystack not configured");
 
-    const { data: dep } = await context.supabase
+    const admin = await getAdmin();
+    let { data: dep } = await admin
       .from("deposits").select("*").eq("paystack_ref", data.reference).eq("user_id", context.userId).maybeSingle();
-    if (!dep) throw new Error("Deposit not found");
-    if (dep.status === "completed") return { status: "already_completed" };
 
+    // Verify with Paystack first — even if local deposit row is missing,
+    // we can reconstruct from metadata so the user never loses funds.
     const resp = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(data.reference)}`, {
       headers: { Authorization: `Bearer ${secret}` },
     });
     const json: any = await resp.json();
-    if (!json.status || json.data.status !== "success") {
-      await context.supabase.from("deposits").update({ status: "failed", processed_at: new Date().toISOString() }).eq("id", dep.id);
+    const ok = json?.status && json?.data?.status === "success";
+
+    if (!dep) {
+      if (!ok) throw new Error("Deposit not found");
+      const metaUser = json.data?.metadata?.user_id;
+      if (metaUser && metaUser !== context.userId) throw new Error("Deposit belongs to another user");
+      const amount = Number(json.data.amount) / 100;
+      const { data: inserted, error: insErr } = await admin.from("deposits").insert({
+        user_id: context.userId, amount, method: "paystack",
+        paystack_ref: data.reference, status: "pending",
+      }).select().single();
+      if (insErr) throw insErr;
+      dep = inserted;
+    }
+
+    if (dep.status === "completed") return { status: "already_completed" };
+
+    if (!ok) {
+      await admin.from("deposits").update({ status: "failed", processed_at: new Date().toISOString() }).eq("id", dep.id);
       throw new Error("Payment not successful");
     }
 
     const amount = Number(dep.amount);
-    const { data: wallet } = await context.supabase.from("wallets").select("balance,total_deposited").eq("user_id", context.userId).maybeSingle();
-    await context.supabase.from("wallets").update({
+    const { data: wallet } = await admin.from("wallets").select("balance,total_deposited").eq("user_id", context.userId).maybeSingle();
+    await admin.from("wallets").update({
       balance: Number(wallet?.balance ?? 0) + amount,
       total_deposited: Number(wallet?.total_deposited ?? 0) + amount,
       updated_at: new Date().toISOString(),
     }).eq("user_id", context.userId);
 
-    await context.supabase.from("deposits").update({
+    await admin.from("deposits").update({
       status: "completed", processed_at: new Date().toISOString(),
     }).eq("id", dep.id);
 
-    await context.supabase.from("transactions").insert({
+    await admin.from("transactions").insert({
       user_id: context.userId, type: "deposit", amount, status: "completed",
       reference: data.reference, description: "Paystack deposit",
     });
 
-    await payReferralCommissions(context.supabase, context.userId, amount, "deposit");
+    await payReferralCommissions(admin, context.userId, amount, "deposit");
     return { status: "ok" };
   });
 
@@ -341,12 +368,14 @@ export const submitManualDeposit = createServerFn({ method: "POST" })
   .inputValidator((d: { amount: number; note: string }) =>
     z.object({ amount: z.number().positive(), note: z.string().min(1).max(500) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: settings } = await context.supabase.from("settings").select("manual_deposit_enabled").eq("id", 1).maybeSingle();
+    const admin = await getAdmin();
+    const { data: settings } = await admin.from("settings").select("manual_deposit_enabled").eq("id", 1).maybeSingle();
     if (!settings?.manual_deposit_enabled) throw new Error("Manual deposits are disabled");
-    await context.supabase.from("deposits").insert({
+    const { error } = await admin.from("deposits").insert({
       user_id: context.userId, amount: data.amount, method: "manual",
       proof_note: data.note, status: "pending",
     });
+    if (error) throw error;
     return { ok: true };
   });
 
@@ -357,13 +386,14 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { amount: number }) => z.object({ amount: z.number().positive() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    await accrueRoi(supabase, userId);
+    const { userId } = context;
+    const admin = await getAdmin();
+    await accrueRoi(admin, userId);
 
     const [{ data: settings }, { data: wallet }, { data: profile }] = await Promise.all([
-      supabase.from("settings").select("min_withdrawal,max_withdrawal,withdrawal_fee_pct").eq("id", 1).maybeSingle(),
-      supabase.from("wallets").select("balance,non_withdrawable").eq("user_id", userId).maybeSingle(),
-      supabase.from("profiles").select("bank_name,bank_account_no,bank_account_name").eq("id", userId).maybeSingle(),
+      admin.from("settings").select("min_withdrawal,max_withdrawal,withdrawal_fee_pct").eq("id", 1).maybeSingle(),
+      admin.from("wallets").select("balance,non_withdrawable").eq("user_id", userId).maybeSingle(),
+      admin.from("profiles").select("bank_name,bank_account_no,bank_account_name").eq("id", userId).maybeSingle(),
     ]);
 
     if (data.amount < Number(settings?.min_withdrawal ?? 0)) throw new Error(`Minimum withdrawal is ₦${settings?.min_withdrawal}`);
@@ -376,18 +406,17 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     const fee = data.amount * (Number(settings?.withdrawal_fee_pct ?? 0) / 100);
     const net = data.amount - fee;
 
-    // lock funds: move from balance to locked
-    await supabase.from("wallets").update({
+    await admin.from("wallets").update({
       balance: Number(wallet!.balance) - data.amount,
       updated_at: new Date().toISOString(),
     }).eq("user_id", userId);
 
-    await supabase.from("withdrawals").insert({
+    await admin.from("withdrawals").insert({
       user_id: userId, amount: data.amount, fee, net_amount: net,
       bank_name: profile.bank_name, bank_account_no: profile.bank_account_no,
       bank_account_name: profile.bank_account_name, status: "pending",
     });
-    await supabase.from("transactions").insert({
+    await admin.from("transactions").insert({
       user_id: userId, type: "withdrawal", amount: data.amount, status: "pending",
       description: `Withdrawal requested (fee ₦${fee.toFixed(2)})`,
     });
@@ -456,4 +485,16 @@ export const getWithdrawals = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data } = await context.supabase.from("withdrawals").select("*").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(50);
     return data ?? [];
+  });
+
+// ============================================================
+// SUPPORT INFO (for authenticated users)
+// ============================================================
+export const getSupportInfo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase.from("settings")
+      .select("support_title,support_agent_name,support_agent_details,support_contact_link,site_name")
+      .eq("id", 1).maybeSingle();
+    return data;
   });
