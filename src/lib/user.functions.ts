@@ -226,8 +226,8 @@ async function payReferralCommissions(
 // ============================================================
 export const purchasePlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { planId: string; amount: number }) =>
-    z.object({ planId: z.string().uuid(), amount: z.number().positive() }).parse(d))
+  .inputValidator((d: { planId: string }) =>
+    z.object({ planId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const admin = await getAdmin();
@@ -235,32 +235,35 @@ export const purchasePlan = createServerFn({ method: "POST" })
 
     const { data: plan } = await admin.from("plans").select("*").eq("id", data.planId).eq("is_active", true).maybeSingle();
     if (!plan) throw new Error("Plan not found");
-    if (data.amount < Number(plan.min_amount)) throw new Error(`Minimum is ₦${plan.min_amount}`);
-    if (data.amount > Number(plan.max_amount)) throw new Error(`Maximum is ₦${plan.max_amount}`);
+    const price = Number(plan.price ?? plan.min_amount);
+    if (!(price > 0)) throw new Error("Plan price not set");
 
-    const { data: wallet } = await admin.from("wallets").select("balance").eq("user_id", userId).maybeSingle();
-    if (!wallet || Number(wallet.balance) < data.amount) throw new Error("Insufficient balance");
+    const { data: wallet } = await admin.from("wallets").select("balance,non_withdrawable").eq("user_id", userId).maybeSingle();
+    if (!wallet || Number(wallet.balance) < price) throw new Error("Insufficient balance — please deposit first");
 
+    // Release welcome bonus / any locked non-withdrawable funds on first plan purchase
     await admin.from("wallets").update({
-      balance: Number(wallet.balance) - data.amount, updated_at: new Date().toISOString(),
+      balance: Number(wallet.balance) - price,
+      non_withdrawable: 0,
+      updated_at: new Date().toISOString(),
     }).eq("user_id", userId);
 
     const startedAt = new Date();
     const endsAt = new Date(startedAt.getTime() + plan.duration_days * 86_400_000);
     const { data: inv, error: invErr } = await admin.from("investments").insert({
       user_id: userId, plan_id: plan.id, plan_name: plan.name,
-      amount: data.amount, daily_roi_pct: plan.daily_roi_pct,
+      amount: price, daily_roi_pct: plan.daily_roi_pct,
       duration_days: plan.duration_days, return_principal: plan.return_principal,
       ends_at: endsAt.toISOString(),
     }).select().single();
     if (invErr) throw invErr;
 
     await admin.from("transactions").insert({
-      user_id: userId, type: "investment", amount: data.amount,
+      user_id: userId, type: "investment", amount: price,
       description: `Purchased ${plan.name}`, meta: { investment_id: inv.id, plan_id: plan.id },
     });
 
-    await payReferralCommissions(admin, userId, data.amount, "investment");
+    await payReferralCommissions(admin, userId, price, "investment");
     return { ok: true };
   });
 
@@ -390,11 +393,16 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     const admin = await getAdmin();
     await accrueRoi(admin, userId);
 
-    const [{ data: settings }, { data: wallet }, { data: profile }] = await Promise.all([
+    const [{ data: settings }, { data: wallet }, { data: profile }, depCountQ, invCountQ] = await Promise.all([
       admin.from("settings").select("min_withdrawal,max_withdrawal,withdrawal_fee_pct").eq("id", 1).maybeSingle(),
       admin.from("wallets").select("balance,non_withdrawable").eq("user_id", userId).maybeSingle(),
       admin.from("profiles").select("bank_name,bank_account_no,bank_account_name").eq("id", userId).maybeSingle(),
+      admin.from("deposits").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "completed"),
+      admin.from("investments").select("id", { count: "exact", head: true }).eq("user_id", userId),
     ]);
+
+    if ((depCountQ.count ?? 0) < 1) throw new Error("You must make at least one deposit before withdrawing");
+    if ((invCountQ.count ?? 0) < 1) throw new Error("You must purchase at least one investment plan before withdrawing");
 
     if (data.amount < Number(settings?.min_withdrawal ?? 0)) throw new Error(`Minimum withdrawal is ₦${settings?.min_withdrawal}`);
     if (data.amount > Number(settings?.max_withdrawal ?? Infinity)) throw new Error(`Maximum withdrawal is ₦${settings?.max_withdrawal}`);
@@ -452,11 +460,13 @@ export const getReferralInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    const admin = await getAdmin();
     const [{ data: profile }, { data: chain }, { data: earnings }] = await Promise.all([
       supabase.from("profiles").select("referral_code").eq("id", userId).maybeSingle(),
-      supabase.from("referrals").select("level,referred_id,created_at").eq("referrer_id", userId).order("created_at", { ascending: false }),
+      admin.from("referrals").select("level,referred_id,created_at").eq("referrer_id", userId).order("created_at", { ascending: false }),
       supabase.from("referral_earnings").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
     ]);
+
     const counts = { l1: 0, l2: 0, l3: 0 };
     const totals = { l1: 0, l2: 0, l3: 0 };
     (chain ?? []).forEach((r: any) => {
@@ -467,7 +477,36 @@ export const getReferralInfo = createServerFn({ method: "GET" })
       else if (e.level === 2) totals.l2 += Number(e.amount);
       else if (e.level === 3) totals.l3 += Number(e.amount);
     });
-    return { referral_code: profile?.referral_code, counts, totals, earnings: earnings ?? [] };
+
+    // Referred users with masked email + deposit totals
+    const referredIds = (chain ?? []).map((r: any) => r.referred_id);
+    let referredUsers: any[] = [];
+    if (referredIds.length) {
+      const [{ data: profs }, { data: deps }] = await Promise.all([
+        admin.from("profiles").select("id,email").in("id", referredIds),
+        admin.from("deposits").select("user_id,amount").in("user_id", referredIds).eq("status", "completed"),
+      ]);
+      const depMap = new Map<string, number>();
+      (deps ?? []).forEach((d: any) => depMap.set(d.user_id, (depMap.get(d.user_id) ?? 0) + Number(d.amount)));
+      const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      referredUsers = (chain ?? []).map((r: any) => {
+        const p: any = profMap.get(r.referred_id);
+        const email: string = p?.email ?? "";
+        const at = email.indexOf("@");
+        const masked = at > 0
+          ? `${email.slice(0, Math.min(3, at))}${"*".repeat(Math.max(0, at - 3))}${email.slice(at)}`
+          : "user****";
+        return {
+          id: r.referred_id,
+          level: r.level,
+          masked_email: masked,
+          deposited: depMap.get(r.referred_id) ?? 0,
+          joined_at: r.created_at,
+        };
+      });
+    }
+
+    return { referral_code: profile?.referral_code, counts, totals, earnings: earnings ?? [], referredUsers };
   });
 
 // ============================================================
