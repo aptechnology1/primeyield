@@ -147,6 +147,7 @@ export type Database = {
           max_amount: number
           min_amount: number
           name: string
+          price: number
           return_principal: boolean
           sort_order: number
         }
@@ -160,6 +161,7 @@ export type Database = {
           max_amount: number
           min_amount: number
           name: string
+          price?: number
           return_principal?: boolean
           sort_order?: number
         }
@@ -173,6 +175,7 @@ export type Database = {
           max_amount?: number
           min_amount?: number
           name?: string
+          price?: number
           return_principal?: boolean
           sort_order?: number
         }

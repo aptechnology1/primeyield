@@ -48,6 +48,28 @@ function ReferralsPage() {
       </div>
 
       <section className="space-y-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Your network</h2>
+        {(!data.referredUsers || data.referredUsers.length === 0) ? (
+          <p className="text-xs text-muted-foreground">No one has joined with your link yet.</p>
+        ) : (
+          <div className="divide-y divide-border border-t border-b border-border">
+            {data.referredUsers.map((u: any) => (
+              <div key={u.id + u.level} className="py-3 flex justify-between items-center gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold font-mono truncate">{u.masked_email}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatDateTime(u.joined_at)}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-mono">{formatNaira(u.deposited)}</span>
+                  <span className="bg-primary-soft text-primary text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">L{u.level}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Earnings history</h2>
         {data.earnings.length === 0 ? (
           <p className="text-xs text-muted-foreground">No referral earnings yet.</p>

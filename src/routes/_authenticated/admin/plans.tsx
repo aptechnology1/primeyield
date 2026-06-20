@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/admin/plans")({
 
 const emptyPlan = {
   name: "", description: "", daily_roi_pct: 2, duration_days: 30,
-  min_amount: 1000, max_amount: 1000000, return_principal: true, is_active: true, sort_order: 0,
+  price: 5000, return_principal: true, is_active: true, sort_order: 0,
 };
 
 function PlansAdmin() {
@@ -36,7 +36,7 @@ function PlansAdmin() {
             <div>
               <p className="text-sm font-bold">{p.name} {!p.is_active && <span className="text-[10px] text-muted-foreground">(inactive)</span>}</p>
               <p className="text-[11px] text-muted-foreground">{p.daily_roi_pct}% / day · {p.duration_days} days · {p.return_principal ? "principal returned" : "no principal"}</p>
-              <p className="text-[10px] text-muted-foreground font-mono">{formatNaira(p.min_amount)} – {formatNaira(p.max_amount)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Price {formatNaira(p.price ?? p.min_amount)} · Daily {formatNaira(Number(p.price ?? p.min_amount) * Number(p.daily_roi_pct) / 100)}</p>
             </div>
             <div className="flex gap-1">
               <PlanForm initial={p} trigger={<Button size="icon" variant="ghost"><Pencil className="size-4" /></Button>} />
@@ -62,8 +62,7 @@ function PlanForm({ initial, trigger }: { initial: any; trigger: React.ReactNode
       description: form.description || null,
       daily_roi_pct: Number(form.daily_roi_pct),
       duration_days: Number(form.duration_days),
-      min_amount: Number(form.min_amount),
-      max_amount: Number(form.max_amount),
+      price: Number(form.price ?? form.min_amount ?? 0),
       return_principal: !!form.return_principal,
       is_active: !!form.is_active,
       sort_order: Number(form.sort_order),
@@ -71,6 +70,10 @@ function PlanForm({ initial, trigger }: { initial: any; trigger: React.ReactNode
     onSuccess: () => { toast.success("Plan saved"); qc.invalidateQueries({ queryKey: ["admin-plans"] }); setOpen(false); },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const price = Number(form.price ?? form.min_amount ?? 0);
+  const dailyEarn = price * Number(form.daily_roi_pct || 0) / 100;
+  const totalEarn = dailyEarn * Number(form.duration_days || 0) + (form.return_principal ? price : 0);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setForm(initial); }}>
@@ -81,11 +84,14 @@ function PlanForm({ initial, trigger }: { initial: any; trigger: React.ReactNode
           <Field label="Name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
           <Field label="Description"><Textarea rows={2} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
           <div className="grid grid-cols-2 gap-3">
+            <Field label="Price (₦)"><Input type="number" value={form.price ?? form.min_amount ?? 0} onChange={(e) => setForm({ ...form, price: e.target.value })} /></Field>
+            <Field label="Validity (days)"><Input type="number" value={form.duration_days} onChange={(e) => setForm({ ...form, duration_days: e.target.value })} /></Field>
             <Field label="Daily ROI %"><Input type="number" step="0.01" value={form.daily_roi_pct} onChange={(e) => setForm({ ...form, daily_roi_pct: e.target.value })} /></Field>
-            <Field label="Duration (days)"><Input type="number" value={form.duration_days} onChange={(e) => setForm({ ...form, duration_days: e.target.value })} /></Field>
-            <Field label="Min amount (₦)"><Input type="number" value={form.min_amount} onChange={(e) => setForm({ ...form, min_amount: e.target.value })} /></Field>
-            <Field label="Max amount (₦)"><Input type="number" value={form.max_amount} onChange={(e) => setForm({ ...form, max_amount: e.target.value })} /></Field>
             <Field label="Sort order"><Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} /></Field>
+          </div>
+          <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1 font-mono">
+            <div className="flex justify-between"><span className="text-muted-foreground">Daily earnings</span><span className="font-bold text-primary">{formatNaira(dailyEarn)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Total earnings</span><span className="font-bold">{formatNaira(totalEarn)}</span></div>
           </div>
           <div className="flex items-center justify-between"><Label>Return principal at end</Label><Switch checked={!!form.return_principal} onCheckedChange={(v) => setForm({ ...form, return_principal: v })} /></div>
           <div className="flex items-center justify-between"><Label>Active</Label><Switch checked={!!form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} /></div>

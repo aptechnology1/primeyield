@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { LogOut, Users, ShieldCheck, LifeBuoy } from "lucide-react";
+import { LogOut, Users, ShieldCheck, LifeBuoy, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   loader: ({ context }) =>
@@ -27,12 +27,15 @@ function ProfilePage() {
   const [bankName, setBankName] = useState(data.profile?.bank_name ?? "");
   const [bankNo, setBankNo] = useState(data.profile?.bank_account_no ?? "");
   const [bankHolder, setBankHolder] = useState(data.profile?.bank_account_name ?? "");
+  const hasBank = !!(data.profile?.bank_name && data.profile?.bank_account_no && data.profile?.bank_account_name);
+  const [editBank, setEditBank] = useState(!hasBank);
 
   useEffect(() => {
     setName(data.profile?.full_name ?? "");
     setBankName(data.profile?.bank_name ?? "");
     setBankNo(data.profile?.bank_account_no ?? "");
     setBankHolder(data.profile?.bank_account_name ?? "");
+    setEditBank(!(data.profile?.bank_name && data.profile?.bank_account_no && data.profile?.bank_account_name));
   }, [data.profile]);
 
   const mut = useMutation({
@@ -95,19 +98,36 @@ function ProfilePage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Bank details</h2>
-        <div className="space-y-1.5">
-          <Label>Bank name</Label>
-          <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. GTBank" />
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Bank details</h2>
+          {hasBank && !editBank && (
+            <button onClick={() => setEditBank(true)} className="text-xs font-semibold text-primary inline-flex items-center gap-1">
+              <Pencil className="size-3" /> Edit
+            </button>
+          )}
         </div>
-        <div className="space-y-1.5">
-          <Label>Account number</Label>
-          <Input value={bankNo} onChange={(e) => setBankNo(e.target.value)} inputMode="numeric" maxLength={20} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Account holder name</Label>
-          <Input value={bankHolder} onChange={(e) => setBankHolder(e.target.value)} />
-        </div>
+        {hasBank && !editBank ? (
+          <div className="bg-card border border-border rounded-xl p-4 space-y-2 text-sm">
+            <Row label="Bank" value={data.profile?.bank_name ?? ""} />
+            <Row label="Account no." value={data.profile?.bank_account_no ?? ""} mono />
+            <Row label="Holder" value={data.profile?.bank_account_name ?? ""} />
+          </div>
+        ) : (
+          <>
+            <div className="space-y-1.5">
+              <Label>Bank name</Label>
+              <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. GTBank" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Account number</Label>
+              <Input value={bankNo} onChange={(e) => setBankNo(e.target.value)} inputMode="numeric" maxLength={20} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Account holder name</Label>
+              <Input value={bankHolder} onChange={(e) => setBankHolder(e.target.value)} />
+            </div>
+          </>
+        )}
       </section>
 
       <Button className="w-full h-11" disabled={mut.isPending} onClick={() => mut.mutate()}>
@@ -117,6 +137,15 @@ function ProfilePage() {
       <button onClick={signOut} className="w-full text-destructive font-semibold text-sm py-3 flex items-center justify-center gap-2">
         <LogOut className="size-4" /> Sign out
       </button>
+    </div>
+  );
+}
+
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`text-xs font-semibold truncate ${mono ? "font-mono" : ""}`}>{value}</span>
     </div>
   );
 }

@@ -109,8 +109,7 @@ const planSchema = z.object({
   description: z.string().max(500).optional().nullable(),
   daily_roi_pct: z.number().positive(),
   duration_days: z.number().int().positive(),
-  min_amount: z.number().positive(),
-  max_amount: z.number().positive(),
+  price: z.number().positive(),
   return_principal: z.boolean(),
   is_active: z.boolean(),
   sort_order: z.number().int(),
@@ -121,11 +120,13 @@ export const adminUpsertPlan = createServerFn({ method: "POST" })
   .inputValidator((d: any) => planSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requireAdmin(context.supabase, context.userId);
+    // Mirror price into min/max for backward compat
+    const row = { ...data, min_amount: data.price, max_amount: data.price };
     if (data.id) {
-      const { error } = await context.supabase.from("plans").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("plans").update(row).eq("id", data.id);
       if (error) throw error;
     } else {
-      const { id, ...insert } = data;
+      const { id, ...insert } = row;
       const { error } = await context.supabase.from("plans").insert(insert);
       if (error) throw error;
     }
