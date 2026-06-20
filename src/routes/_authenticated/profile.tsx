@@ -140,3 +140,12 @@ function ProfilePage() {
     </div>
   );
 }
+
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`text-xs font-semibold truncate ${mono ? "font-mono" : ""}`}>{value}</span>
+    </div>
+  );
+}
