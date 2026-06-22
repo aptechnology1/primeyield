@@ -526,6 +526,18 @@ export const getWithdrawals = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+export const getTransactions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    return data ?? [];
+  });
+
 // ============================================================
 // SUPPORT INFO (for authenticated users)
 // ============================================================
