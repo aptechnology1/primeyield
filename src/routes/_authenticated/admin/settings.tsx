@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
-import { adminGetSettings, adminUpdateSettings } from "@/lib/admin.functions";
+import { adminGetSettings, adminUpdateSettings, adminWipeAllData } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -35,6 +35,7 @@ function SettingsPage() {
       ref_l2_pct: Number(form.ref_l2_pct),
       ref_l3_pct: Number(form.ref_l3_pct),
       ref_source: form.ref_source,
+      min_deposit: Number(form.min_deposit ?? 0),
       min_withdrawal: Number(form.min_withdrawal),
       max_withdrawal: Number(form.max_withdrawal),
       withdrawal_fee_pct: Number(form.withdrawal_fee_pct),
@@ -43,6 +44,11 @@ function SettingsPage() {
       manual_bank_name: form.manual_bank_name ?? "",
       manual_bank_account: form.manual_bank_account ?? "",
       manual_bank_account_name: form.manual_bank_account_name ?? "",
+      deposit_enabled: !!form.deposit_enabled,
+      withdrawal_enabled: !!form.withdrawal_enabled,
+      investment_enabled: !!form.investment_enabled,
+      maintenance_mode: !!form.maintenance_mode,
+      maintenance_message: form.maintenance_message ?? "",
       dashboard_popup_enabled: !!form.dashboard_popup_enabled,
       dashboard_popup_title: form.dashboard_popup_title ?? "",
       dashboard_popup_message: form.dashboard_popup_message ?? "",
@@ -102,6 +108,22 @@ function SettingsPage() {
         </Field>
       </Section>
 
+      <Section title="Site controls">
+        <Toggle label="Maintenance mode (block all user activity)" value={!!form.maintenance_mode} onChange={(v) => set("maintenance_mode", v)} />
+        <Field label="Maintenance message">
+          <Textarea rows={2} value={form.maintenance_message ?? ""} onChange={(e) => set("maintenance_message", e.target.value)} />
+        </Field>
+        <Toggle label="Deposits enabled" value={form.deposit_enabled !== false} onChange={(v) => set("deposit_enabled", v)} />
+        <Toggle label="Withdrawals enabled" value={form.withdrawal_enabled !== false} onChange={(v) => set("withdrawal_enabled", v)} />
+        <Toggle label="Investments enabled" value={form.investment_enabled !== false} onChange={(v) => set("investment_enabled", v)} />
+      </Section>
+
+      <Section title="Deposits">
+        <Field label="Minimum deposit (₦)">
+          <Input type="number" value={form.min_deposit ?? 0} onChange={(e) => set("min_deposit", e.target.value)} />
+        </Field>
+      </Section>
+
       <Section title="Withdrawals">
         <div className="grid grid-cols-2 gap-2">
           <Field label="Min (₦)"><Input type="number" value={form.min_withdrawal} onChange={(e) => set("min_withdrawal", e.target.value)} /></Field>
@@ -111,11 +133,11 @@ function SettingsPage() {
       </Section>
 
       <Section title="Deposit methods">
-        <Toggle label="Paystack enabled" value={!!form.paystack_enabled} onChange={(v) => set("paystack_enabled", v)} />
-        <Toggle label="Manual deposit enabled" value={!!form.manual_deposit_enabled} onChange={(v) => set("manual_deposit_enabled", v)} />
-        <Field label="Manual bank name"><Input value={form.manual_bank_name ?? ""} onChange={(e) => set("manual_bank_name", e.target.value)} /></Field>
-        <Field label="Manual bank account number"><Input value={form.manual_bank_account ?? ""} onChange={(e) => set("manual_bank_account", e.target.value)} /></Field>
-        <Field label="Manual bank account name"><Input value={form.manual_bank_account_name ?? ""} onChange={(e) => set("manual_bank_account_name", e.target.value)} /></Field>
+        <Toggle label="Automated payments enabled" value={!!form.paystack_enabled} onChange={(v) => set("paystack_enabled", v)} />
+        <Toggle label="Bank transfer enabled" value={!!form.manual_deposit_enabled} onChange={(v) => set("manual_deposit_enabled", v)} />
+        <Field label="Bank name"><Input value={form.manual_bank_name ?? ""} onChange={(e) => set("manual_bank_name", e.target.value)} /></Field>
+        <Field label="Bank account number"><Input value={form.manual_bank_account ?? ""} onChange={(e) => set("manual_bank_account", e.target.value)} /></Field>
+        <Field label="Bank account name"><Input value={form.manual_bank_account_name ?? ""} onChange={(e) => set("manual_bank_account_name", e.target.value)} /></Field>
       </Section>
 
       <Section title="Dashboard popup">
@@ -221,6 +243,43 @@ function SettingsPage() {
 
       <Button className="w-full h-11" disabled={mut.isPending} onClick={() => mut.mutate()}>
         {mut.isPending ? "Saving…" : "Save settings"}
+      </Button>
+
+      <DangerZone />
+    </div>
+  );
+}
+
+function DangerZone() {
+  const wipe = useServerFn(adminWipeAllData);
+  const qc = useQueryClient();
+  const [text, setText] = useState("");
+  const mut = useMutation({
+    mutationFn: () => wipe({ data: { confirm: "DELETE EVERYTHING" } }),
+    onSuccess: () => {
+      toast.success("All site data wiped");
+      setText("");
+      qc.invalidateQueries();
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  return (
+    <div className="bg-destructive/5 border border-destructive/40 rounded-xl p-4 space-y-3">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-destructive flex items-center gap-2">
+        <AlertTriangle className="size-3.5" /> Danger zone
+      </h2>
+      <p className="text-xs text-muted-foreground">
+        Permanently delete every deposit, withdrawal, investment, transaction, referral, check-in and reset every wallet to ₦0. Users, plans and settings are preserved. This cannot be undone.
+      </p>
+      <Label className="text-xs">Type <span className="font-mono font-bold">DELETE EVERYTHING</span> to confirm</Label>
+      <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="DELETE EVERYTHING" />
+      <Button
+        variant="destructive"
+        className="w-full h-11"
+        disabled={mut.isPending || text !== "DELETE EVERYTHING"}
+        onClick={() => mut.mutate()}
+      >
+        {mut.isPending ? "Wiping…" : "Wipe all site data"}
       </Button>
     </div>
   );

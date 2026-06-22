@@ -66,8 +66,9 @@ function DepositPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const showPaystack = bank?.paystack_enabled;
-  const showManual = bank?.manual_deposit_enabled;
+  const depositsOn = bank?.deposit_enabled !== false && !bank?.maintenance_mode;
+  const showPaystack = depositsOn && bank?.paystack_enabled;
+  const showManual = depositsOn && bank?.manual_deposit_enabled;
   const defaultTab = showPaystack ? "paystack" : "manual";
 
   return (
@@ -79,20 +80,20 @@ function DepositPage() {
 
       {!showPaystack && !showManual ? (
         <p className="text-sm text-muted-foreground bg-card border border-border p-6 rounded-xl text-center">
-          Deposits are temporarily disabled.
+          {bank?.maintenance_mode ? (bank?.maintenance_message || "Site is under maintenance.") : "Deposits are temporarily disabled."}
         </p>
       ) : (
         <Tabs defaultValue={defaultTab}>
           <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="paystack" disabled={!showPaystack}><CreditCard className="size-4 mr-1" /> Paystack</TabsTrigger>
+            <TabsTrigger value="paystack" disabled={!showPaystack}><CreditCard className="size-4 mr-1" /> Automated</TabsTrigger>
             <TabsTrigger value="manual" disabled={!showManual}><Building2 className="size-4 mr-1" /> Bank transfer</TabsTrigger>
           </TabsList>
 
           <TabsContent value="paystack" className="space-y-4 mt-4">
             <p className="text-xs text-muted-foreground">Pay with card or bank account. Funds credit instantly.</p>
-            <Input type="number" placeholder="Amount (₦)" min={100} step={100} value={psAmount} onChange={(e) => setPsAmount(e.target.value)} />
+            <Input type="number" placeholder="Amount (₦)" min={bank?.min_deposit ?? 100} step={100} value={psAmount} onChange={(e) => setPsAmount(e.target.value)} />
             <Button className="w-full h-11" disabled={psMut.isPending || !psAmount} onClick={() => psMut.mutate(Number(psAmount))}>
-              {psMut.isPending ? "Redirecting…" : "Continue to Paystack"}
+              {psMut.isPending ? "Redirecting…" : "Continue to payment"}
             </Button>
           </TabsContent>
 

@@ -12,7 +12,7 @@ export const getPublicSettings = createServerFn({ method: "GET" }).handler(async
   });
   const { data } = await sb
     .from("settings")
-    .select("site_name,paystack_enabled,manual_deposit_enabled,welcome_bonus_amount")
+    .select("site_name,paystack_enabled,manual_deposit_enabled,welcome_bonus_amount,deposit_enabled,withdrawal_enabled,investment_enabled,maintenance_mode,maintenance_message")
     .eq("id", 1)
     .maybeSingle();
   return data ?? {
@@ -20,12 +20,24 @@ export const getPublicSettings = createServerFn({ method: "GET" }).handler(async
     paystack_enabled: true,
     manual_deposit_enabled: true,
     welcome_bonus_amount: 0,
+    deposit_enabled: true,
+    withdrawal_enabled: true,
+    investment_enabled: true,
+    maintenance_mode: false,
+    maintenance_message: "",
   };
 });
 
 async function getAdmin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
+}
+
+async function assertNotMaintenance(admin: any, userId: string, supabase: any) {
+  const { data: s } = await admin.from("settings").select("maintenance_mode,maintenance_message").eq("id", 1).maybeSingle();
+  if (!s?.maintenance_mode) return;
+  const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+  if (!isAdmin) throw new Error(s.maintenance_message || "Site is under maintenance");
 }
 
 // ============================================================
@@ -229,8 +241,11 @@ export const purchasePlan = createServerFn({ method: "POST" })
   .inputValidator((d: { planId: string }) =>
     z.object({ planId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { userId, supabase } = context;
     const admin = await getAdmin();
+    await assertNotMaintenance(admin, userId, supabase);
+    const { data: gate } = await admin.from("settings").select("investment_enabled").eq("id", 1).maybeSingle();
+    if (gate && (gate as any).investment_enabled === false) throw new Error("Investments are currently disabled");
     await accrueRoi(admin, userId);
 
     const { data: plan } = await admin.from("plans").select("*").eq("id", data.planId).eq("is_active", true).maybeSingle();
@@ -276,9 +291,14 @@ export const initPaystackDeposit = createServerFn({ method: "POST" })
     z.object({ amount: z.number().positive(), callbackUrl: z.string().url() }).parse(d))
   .handler(async ({ data, context }) => {
     const secret = process.env.PAYSTACK_SECRET_KEY;
-    if (!secret) throw new Error("Paystack not configured. Please contact admin.");
+    if (!secret) throw new Error("Automated payments not configured. Please contact admin.");
 
     const admin = await getAdmin();
+    await assertNotMaintenance(admin, context.userId, context.supabase);
+    const { data: gate } = await admin.from("settings").select("deposit_enabled,min_deposit").eq("id", 1).maybeSingle();
+    if (gate && (gate as any).deposit_enabled === false) throw new Error("Deposits are currently disabled");
+    const minDep = Number((gate as any)?.min_deposit ?? 0);
+    if (minDep > 0 && data.amount < minDep) throw new Error(`Minimum deposit is ₦${minDep}`);
     const { data: profile } = await admin.from("profiles").select("email").eq("id", context.userId).maybeSingle();
     const email = profile?.email;
     if (!email) throw new Error("Email missing on profile");
@@ -372,8 +392,13 @@ export const submitManualDeposit = createServerFn({ method: "POST" })
     z.object({ amount: z.number().positive(), note: z.string().min(1).max(500) }).parse(d))
   .handler(async ({ data, context }) => {
     const admin = await getAdmin();
-    const { data: settings } = await admin.from("settings").select("manual_deposit_enabled").eq("id", 1).maybeSingle();
-    if (!settings?.manual_deposit_enabled) throw new Error("Manual deposits are disabled");
+    await assertNotMaintenance(admin, context.userId, context.supabase);
+    const { data: settings } = await admin.from("settings")
+      .select("manual_deposit_enabled,deposit_enabled,min_deposit").eq("id", 1).maybeSingle();
+    if (settings && (settings as any).deposit_enabled === false) throw new Error("Deposits are currently disabled");
+    if (!settings?.manual_deposit_enabled) throw new Error("Bank transfer deposits are disabled");
+    const minDep = Number((settings as any)?.min_deposit ?? 0);
+    if (minDep > 0 && data.amount < minDep) throw new Error(`Minimum deposit is ₦${minDep}`);
     const { error } = await admin.from("deposits").insert({
       user_id: context.userId, amount: data.amount, method: "manual",
       proof_note: data.note, status: "pending",
@@ -389,18 +414,20 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { amount: number }) => z.object({ amount: z.number().positive() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { userId, supabase } = context;
     const admin = await getAdmin();
+    await assertNotMaintenance(admin, userId, supabase);
     await accrueRoi(admin, userId);
 
     const [{ data: settings }, { data: wallet }, { data: profile }, depCountQ, invCountQ] = await Promise.all([
-      admin.from("settings").select("min_withdrawal,max_withdrawal,withdrawal_fee_pct").eq("id", 1).maybeSingle(),
+      admin.from("settings").select("min_withdrawal,max_withdrawal,withdrawal_fee_pct,withdrawal_enabled").eq("id", 1).maybeSingle(),
       admin.from("wallets").select("balance,non_withdrawable").eq("user_id", userId).maybeSingle(),
       admin.from("profiles").select("bank_name,bank_account_no,bank_account_name").eq("id", userId).maybeSingle(),
       admin.from("deposits").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "completed"),
       admin.from("investments").select("id", { count: "exact", head: true }).eq("user_id", userId),
     ]);
 
+    if (settings && (settings as any).withdrawal_enabled === false) throw new Error("Withdrawals are currently disabled");
     if ((depCountQ.count ?? 0) < 1) throw new Error("You must make at least one deposit before withdrawing");
     if ((invCountQ.count ?? 0) < 1) throw new Error("You must purchase at least one investment plan before withdrawing");
 

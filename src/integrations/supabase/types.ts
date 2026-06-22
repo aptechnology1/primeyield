@@ -295,12 +295,17 @@ export type Database = {
           dashboard_popup_enabled: boolean
           dashboard_popup_message: string
           dashboard_popup_title: string
+          deposit_enabled: boolean
           id: number
+          investment_enabled: boolean
+          maintenance_message: string
+          maintenance_mode: boolean
           manual_bank_account: string
           manual_bank_account_name: string
           manual_bank_name: string
           manual_deposit_enabled: boolean
           max_withdrawal: number
+          min_deposit: number
           min_withdrawal: number
           paystack_enabled: boolean
           ref_l1_pct: number
@@ -315,6 +320,7 @@ export type Database = {
           updated_at: string
           welcome_bonus_amount: number
           welcome_bonus_withdrawable: boolean
+          withdrawal_enabled: boolean
           withdrawal_fee_pct: number
         }
         Insert: {
@@ -323,12 +329,17 @@ export type Database = {
           dashboard_popup_enabled?: boolean
           dashboard_popup_message?: string
           dashboard_popup_title?: string
+          deposit_enabled?: boolean
           id?: number
+          investment_enabled?: boolean
+          maintenance_message?: string
+          maintenance_mode?: boolean
           manual_bank_account?: string
           manual_bank_account_name?: string
           manual_bank_name?: string
           manual_deposit_enabled?: boolean
           max_withdrawal?: number
+          min_deposit?: number
           min_withdrawal?: number
           paystack_enabled?: boolean
           ref_l1_pct?: number
@@ -343,6 +354,7 @@ export type Database = {
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
+          withdrawal_enabled?: boolean
           withdrawal_fee_pct?: number
         }
         Update: {
@@ -351,12 +363,17 @@ export type Database = {
           dashboard_popup_enabled?: boolean
           dashboard_popup_message?: string
           dashboard_popup_title?: string
+          deposit_enabled?: boolean
           id?: number
+          investment_enabled?: boolean
+          maintenance_message?: string
+          maintenance_mode?: boolean
           manual_bank_account?: string
           manual_bank_account_name?: string
           manual_bank_name?: string
           manual_deposit_enabled?: boolean
           max_withdrawal?: number
+          min_deposit?: number
           min_withdrawal?: number
           paystack_enabled?: boolean
           ref_l1_pct?: number
@@ -371,6 +388,7 @@ export type Database = {
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
+          withdrawal_enabled?: boolean
           withdrawal_fee_pct?: number
         }
         Relationships: []

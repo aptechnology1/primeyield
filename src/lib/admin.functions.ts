@@ -299,6 +299,7 @@ const settingsSchema = z.object({
   ref_l2_pct: z.number().min(0).max(100),
   ref_l3_pct: z.number().min(0).max(100),
   ref_source: z.enum(["deposit", "investment", "roi"]),
+  min_deposit: z.number().min(0),
   min_withdrawal: z.number().min(0),
   max_withdrawal: z.number().min(0),
   withdrawal_fee_pct: z.number().min(0).max(100),
@@ -307,6 +308,11 @@ const settingsSchema = z.object({
   manual_bank_name: z.string().max(200),
   manual_bank_account: z.string().max(100),
   manual_bank_account_name: z.string().max(200),
+  deposit_enabled: z.boolean(),
+  withdrawal_enabled: z.boolean(),
+  investment_enabled: z.boolean(),
+  maintenance_mode: z.boolean(),
+  maintenance_message: z.string().max(1000),
   dashboard_popup_enabled: z.boolean(),
   dashboard_popup_title: z.string().max(200),
   dashboard_popup_message: z.string().max(2000),
@@ -330,12 +336,93 @@ export const adminUpdateSettings = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ============================================================
+// ALL REFERRAL DATA (admin)
+// ============================================================
+export const adminListReferrals = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: refs }, { data: earnings }, { data: profs }, { data: deps }] = await Promise.all([
+      supabaseAdmin.from("referrals").select("*").order("created_at", { ascending: false }).limit(1000),
+      supabaseAdmin.from("referral_earnings").select("*").order("created_at", { ascending: false }).limit(1000),
+      supabaseAdmin.from("profiles").select("id,email,full_name,referral_code"),
+      supabaseAdmin.from("deposits").select("user_id,amount,status"),
+    ]);
+    const pMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    const depTotals = new Map<string, number>();
+    (deps ?? []).forEach((d: any) => {
+      if (d.status === "completed") depTotals.set(d.user_id, (depTotals.get(d.user_id) ?? 0) + Number(d.amount));
+    });
+    const earnByReferrer = new Map<string, number>();
+    (earnings ?? []).forEach((e: any) => {
+      earnByReferrer.set(e.user_id, (earnByReferrer.get(e.user_id) ?? 0) + Number(e.amount));
+    });
+
+    const referralsDetailed = (refs ?? []).map((r: any) => ({
+      ...r,
+      referrer: pMap.get(r.referrer_id) ?? null,
+      referred: pMap.get(r.referred_id) ?? null,
+      referred_deposited: depTotals.get(r.referred_id) ?? 0,
+    }));
+
+    const counts = new Map<string, { l1: number; l2: number; l3: number; total: number }>();
+    (refs ?? []).forEach((r: any) => {
+      const c = counts.get(r.referrer_id) ?? { l1: 0, l2: 0, l3: 0, total: 0 };
+      if (r.level === 1) c.l1++; else if (r.level === 2) c.l2++; else if (r.level === 3) c.l3++;
+      c.total++;
+      counts.set(r.referrer_id, c);
+    });
+    const topReferrers = Array.from(counts.entries()).map(([id, c]) => ({
+      user: pMap.get(id) ?? { id },
+      ...c,
+      earned: earnByReferrer.get(id) ?? 0,
+    })).sort((a, b) => b.total - a.total).slice(0, 100);
+
+    const earningsDetailed = (earnings ?? []).map((e: any) => ({
+      ...e,
+      referrer: pMap.get(e.user_id) ?? null,
+      from: pMap.get(e.from_user_id) ?? null,
+    }));
+
+    return { referrals: referralsDetailed, earnings: earningsDetailed, topReferrers };
+  });
+
+// ============================================================
+// DANGER: wipe all site data (admin only)
+// Deletes investments, deposits, withdrawals, transactions,
+// referrals, referral_earnings, daily_checkins. Resets wallets.
+// Preserves users, profiles, plans, settings, roles.
+// ============================================================
+export const adminWipeAllData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { confirm: string }) =>
+    z.object({ confirm: z.literal("DELETE EVERYTHING") }).parse(d))
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("referral_earnings").delete().not("id", "is", null);
+    await supabaseAdmin.from("daily_checkins").delete().not("id", "is", null);
+    await supabaseAdmin.from("transactions").delete().not("id", "is", null);
+    await supabaseAdmin.from("investments").delete().not("id", "is", null);
+    await supabaseAdmin.from("withdrawals").delete().not("id", "is", null);
+    await supabaseAdmin.from("deposits").delete().not("id", "is", null);
+    await supabaseAdmin.from("referrals").delete().not("id", "is", null);
+    await supabaseAdmin.from("wallets").update({
+      balance: 0, non_withdrawable: 0, total_deposited: 0,
+      total_withdrawn: 0, total_earned: 0, referral_earned: 0,
+      updated_at: new Date().toISOString(),
+    }).not("user_id", "is", null);
+    return { ok: true };
+  });
+
 // Manual bank info for users (no admin guard)
 export const getManualBankInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase.from("settings")
-      .select("manual_bank_name,manual_bank_account,manual_bank_account_name,manual_deposit_enabled,paystack_enabled")
+      .select("manual_bank_name,manual_bank_account,manual_bank_account_name,manual_deposit_enabled,paystack_enabled,deposit_enabled,min_deposit,maintenance_mode,maintenance_message")
       .eq("id", 1).maybeSingle();
     return data;
   });
