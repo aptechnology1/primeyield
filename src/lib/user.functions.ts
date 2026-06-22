@@ -291,9 +291,14 @@ export const initPaystackDeposit = createServerFn({ method: "POST" })
     z.object({ amount: z.number().positive(), callbackUrl: z.string().url() }).parse(d))
   .handler(async ({ data, context }) => {
     const secret = process.env.PAYSTACK_SECRET_KEY;
-    if (!secret) throw new Error("Paystack not configured. Please contact admin.");
+    if (!secret) throw new Error("Automated payments not configured. Please contact admin.");
 
     const admin = await getAdmin();
+    await assertNotMaintenance(admin, context.userId, context.supabase);
+    const { data: gate } = await admin.from("settings").select("deposit_enabled,min_deposit").eq("id", 1).maybeSingle();
+    if (gate && (gate as any).deposit_enabled === false) throw new Error("Deposits are currently disabled");
+    const minDep = Number((gate as any)?.min_deposit ?? 0);
+    if (minDep > 0 && data.amount < minDep) throw new Error(`Minimum deposit is ₦${minDep}`);
     const { data: profile } = await admin.from("profiles").select("email").eq("id", context.userId).maybeSingle();
     const email = profile?.email;
     if (!email) throw new Error("Email missing on profile");
