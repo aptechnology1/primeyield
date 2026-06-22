@@ -183,7 +183,10 @@ function Dashboard() {
 
       {/* Recent activity */}
       <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent activity</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent activity</h2>
+          <Link to="/transactions" className="text-xs font-semibold text-primary">View all</Link>
+        </div>
         {data.transactions.length === 0 ? (
           <p className="text-xs text-muted-foreground">No transactions yet.</p>
         ) : (
