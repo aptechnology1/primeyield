@@ -392,8 +392,13 @@ export const submitManualDeposit = createServerFn({ method: "POST" })
     z.object({ amount: z.number().positive(), note: z.string().min(1).max(500) }).parse(d))
   .handler(async ({ data, context }) => {
     const admin = await getAdmin();
-    const { data: settings } = await admin.from("settings").select("manual_deposit_enabled").eq("id", 1).maybeSingle();
-    if (!settings?.manual_deposit_enabled) throw new Error("Manual deposits are disabled");
+    await assertNotMaintenance(admin, context.userId, context.supabase);
+    const { data: settings } = await admin.from("settings")
+      .select("manual_deposit_enabled,deposit_enabled,min_deposit").eq("id", 1).maybeSingle();
+    if (settings && (settings as any).deposit_enabled === false) throw new Error("Deposits are currently disabled");
+    if (!settings?.manual_deposit_enabled) throw new Error("Bank transfer deposits are disabled");
+    const minDep = Number((settings as any)?.min_deposit ?? 0);
+    if (minDep > 0 && data.amount < minDep) throw new Error(`Minimum deposit is ₦${minDep}`);
     const { error } = await admin.from("deposits").insert({
       user_id: context.userId, amount: data.amount, method: "manual",
       proof_note: data.note, status: "pending",
