@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin/withdrawals'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
+import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin/referrals'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin/plans'
 import { Route as AuthenticatedAdminDepositsRouteImport } from './routes/_authenticated/admin/deposits'
 
@@ -110,6 +111,12 @@ const AuthenticatedAdminSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminReferralsRoute =
+  AuthenticatedAdminReferralsRouteImport.update({
+    id: '/referrals',
+    path: '/referrals',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
@@ -136,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -154,6 +162,7 @@ export interface FileRoutesByTo {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -175,6 +184,7 @@ export interface FileRoutesById {
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/withdraw'
     | '/admin/deposits'
     | '/admin/plans'
+    | '/admin/referrals'
     | '/admin/settings'
     | '/admin/users'
     | '/admin/withdrawals'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/withdraw'
     | '/admin/deposits'
     | '/admin/plans'
+    | '/admin/referrals'
     | '/admin/settings'
     | '/admin/users'
     | '/admin/withdrawals'
@@ -234,6 +246,7 @@ export interface FileRouteTypes {
     | '/_authenticated/withdraw'
     | '/_authenticated/admin/deposits'
     | '/_authenticated/admin/plans'
+    | '/_authenticated/admin/referrals'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/withdrawals'
@@ -360,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/referrals': {
+      id: '/_authenticated/admin/referrals'
+      path: '/referrals'
+      fullPath: '/admin/referrals'
+      preLoaderRoute: typeof AuthenticatedAdminReferralsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/plans': {
       id: '/_authenticated/admin/plans'
       path: '/plans'
@@ -380,6 +400,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
+  AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
@@ -390,6 +411,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
     AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
+    AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
