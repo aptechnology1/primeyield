@@ -12,7 +12,7 @@ export const getPublicSettings = createServerFn({ method: "GET" }).handler(async
   });
   const { data } = await sb
     .from("settings")
-    .select("site_name,paystack_enabled,manual_deposit_enabled,welcome_bonus_amount")
+    .select("site_name,paystack_enabled,manual_deposit_enabled,welcome_bonus_amount,deposit_enabled,withdrawal_enabled,investment_enabled,maintenance_mode,maintenance_message")
     .eq("id", 1)
     .maybeSingle();
   return data ?? {
@@ -20,12 +20,24 @@ export const getPublicSettings = createServerFn({ method: "GET" }).handler(async
     paystack_enabled: true,
     manual_deposit_enabled: true,
     welcome_bonus_amount: 0,
+    deposit_enabled: true,
+    withdrawal_enabled: true,
+    investment_enabled: true,
+    maintenance_mode: false,
+    maintenance_message: "",
   };
 });
 
 async function getAdmin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
+}
+
+async function assertNotMaintenance(admin: any, userId: string, supabase: any) {
+  const { data: s } = await admin.from("settings").select("maintenance_mode,maintenance_message").eq("id", 1).maybeSingle();
+  if (!s?.maintenance_mode) return;
+  const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+  if (!isAdmin) throw new Error(s.maintenance_message || "Site is under maintenance");
 }
 
 // ============================================================
