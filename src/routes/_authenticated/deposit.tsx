@@ -66,8 +66,9 @@ function DepositPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const showPaystack = bank?.paystack_enabled;
-  const showManual = bank?.manual_deposit_enabled;
+  const depositsOn = bank?.deposit_enabled !== false && !bank?.maintenance_mode;
+  const showPaystack = depositsOn && bank?.paystack_enabled;
+  const showManual = depositsOn && bank?.manual_deposit_enabled;
   const defaultTab = showPaystack ? "paystack" : "manual";
 
   return (
@@ -79,7 +80,7 @@ function DepositPage() {
 
       {!showPaystack && !showManual ? (
         <p className="text-sm text-muted-foreground bg-card border border-border p-6 rounded-xl text-center">
-          Deposits are temporarily disabled.
+          {bank?.maintenance_mode ? (bank?.maintenance_message || "Site is under maintenance.") : "Deposits are temporarily disabled."}
         </p>
       ) : (
         <Tabs defaultValue={defaultTab}>
