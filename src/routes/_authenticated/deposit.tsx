@@ -84,15 +84,15 @@ function DepositPage() {
       ) : (
         <Tabs defaultValue={defaultTab}>
           <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="paystack" disabled={!showPaystack}><CreditCard className="size-4 mr-1" /> Paystack</TabsTrigger>
+            <TabsTrigger value="paystack" disabled={!showPaystack}><CreditCard className="size-4 mr-1" /> Automated</TabsTrigger>
             <TabsTrigger value="manual" disabled={!showManual}><Building2 className="size-4 mr-1" /> Bank transfer</TabsTrigger>
           </TabsList>
 
           <TabsContent value="paystack" className="space-y-4 mt-4">
             <p className="text-xs text-muted-foreground">Pay with card or bank account. Funds credit instantly.</p>
-            <Input type="number" placeholder="Amount (₦)" min={100} step={100} value={psAmount} onChange={(e) => setPsAmount(e.target.value)} />
+            <Input type="number" placeholder="Amount (₦)" min={bank?.min_deposit ?? 100} step={100} value={psAmount} onChange={(e) => setPsAmount(e.target.value)} />
             <Button className="w-full h-11" disabled={psMut.isPending || !psAmount} onClick={() => psMut.mutate(Number(psAmount))}>
-              {psMut.isPending ? "Redirecting…" : "Continue to Paystack"}
+              {psMut.isPending ? "Redirecting…" : "Continue to payment"}
             </Button>
           </TabsContent>
 
