@@ -414,12 +414,13 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { amount: number }) => z.object({ amount: z.number().positive() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { userId, supabase } = context;
     const admin = await getAdmin();
+    await assertNotMaintenance(admin, userId, supabase);
     await accrueRoi(admin, userId);
 
     const [{ data: settings }, { data: wallet }, { data: profile }, depCountQ, invCountQ] = await Promise.all([
-      admin.from("settings").select("min_withdrawal,max_withdrawal,withdrawal_fee_pct").eq("id", 1).maybeSingle(),
+      admin.from("settings").select("min_withdrawal,max_withdrawal,withdrawal_fee_pct,withdrawal_enabled").eq("id", 1).maybeSingle(),
       admin.from("wallets").select("balance,non_withdrawable").eq("user_id", userId).maybeSingle(),
       admin.from("profiles").select("bank_name,bank_account_no,bank_account_name").eq("id", userId).maybeSingle(),
       admin.from("deposits").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "completed"),
