@@ -108,6 +108,22 @@ function SettingsPage() {
         </Field>
       </Section>
 
+      <Section title="Site controls">
+        <Toggle label="Maintenance mode (block all user activity)" value={!!form.maintenance_mode} onChange={(v) => set("maintenance_mode", v)} />
+        <Field label="Maintenance message">
+          <Textarea rows={2} value={form.maintenance_message ?? ""} onChange={(e) => set("maintenance_message", e.target.value)} />
+        </Field>
+        <Toggle label="Deposits enabled" value={form.deposit_enabled !== false} onChange={(v) => set("deposit_enabled", v)} />
+        <Toggle label="Withdrawals enabled" value={form.withdrawal_enabled !== false} onChange={(v) => set("withdrawal_enabled", v)} />
+        <Toggle label="Investments enabled" value={form.investment_enabled !== false} onChange={(v) => set("investment_enabled", v)} />
+      </Section>
+
+      <Section title="Deposits">
+        <Field label="Minimum deposit (₦)">
+          <Input type="number" value={form.min_deposit ?? 0} onChange={(e) => set("min_deposit", e.target.value)} />
+        </Field>
+      </Section>
+
       <Section title="Withdrawals">
         <div className="grid grid-cols-2 gap-2">
           <Field label="Min (₦)"><Input type="number" value={form.min_withdrawal} onChange={(e) => set("min_withdrawal", e.target.value)} /></Field>
@@ -117,11 +133,11 @@ function SettingsPage() {
       </Section>
 
       <Section title="Deposit methods">
-        <Toggle label="Paystack enabled" value={!!form.paystack_enabled} onChange={(v) => set("paystack_enabled", v)} />
-        <Toggle label="Manual deposit enabled" value={!!form.manual_deposit_enabled} onChange={(v) => set("manual_deposit_enabled", v)} />
-        <Field label="Manual bank name"><Input value={form.manual_bank_name ?? ""} onChange={(e) => set("manual_bank_name", e.target.value)} /></Field>
-        <Field label="Manual bank account number"><Input value={form.manual_bank_account ?? ""} onChange={(e) => set("manual_bank_account", e.target.value)} /></Field>
-        <Field label="Manual bank account name"><Input value={form.manual_bank_account_name ?? ""} onChange={(e) => set("manual_bank_account_name", e.target.value)} /></Field>
+        <Toggle label="Automated payments enabled" value={!!form.paystack_enabled} onChange={(v) => set("paystack_enabled", v)} />
+        <Toggle label="Bank transfer enabled" value={!!form.manual_deposit_enabled} onChange={(v) => set("manual_deposit_enabled", v)} />
+        <Field label="Bank name"><Input value={form.manual_bank_name ?? ""} onChange={(e) => set("manual_bank_name", e.target.value)} /></Field>
+        <Field label="Bank account number"><Input value={form.manual_bank_account ?? ""} onChange={(e) => set("manual_bank_account", e.target.value)} /></Field>
+        <Field label="Bank account name"><Input value={form.manual_bank_account_name ?? ""} onChange={(e) => set("manual_bank_account_name", e.target.value)} /></Field>
       </Section>
 
       <Section title="Dashboard popup">
