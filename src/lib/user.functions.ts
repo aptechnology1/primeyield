@@ -241,8 +241,11 @@ export const purchasePlan = createServerFn({ method: "POST" })
   .inputValidator((d: { planId: string }) =>
     z.object({ planId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { userId, supabase } = context;
     const admin = await getAdmin();
+    await assertNotMaintenance(admin, userId, supabase);
+    const { data: gate } = await admin.from("settings").select("investment_enabled").eq("id", 1).maybeSingle();
+    if (gate && (gate as any).investment_enabled === false) throw new Error("Investments are currently disabled");
     await accrueRoi(admin, userId);
 
     const { data: plan } = await admin.from("plans").select("*").eq("id", data.planId).eq("is_active", true).maybeSingle();
