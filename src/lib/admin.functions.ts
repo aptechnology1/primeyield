@@ -422,7 +422,7 @@ export const getManualBankInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase.from("settings")
-      .select("manual_bank_name,manual_bank_account,manual_bank_account_name,manual_deposit_enabled,paystack_enabled")
+      .select("manual_bank_name,manual_bank_account,manual_bank_account_name,manual_deposit_enabled,paystack_enabled,deposit_enabled,min_deposit,maintenance_mode,maintenance_message")
       .eq("id", 1).maybeSingle();
     return data;
   });
