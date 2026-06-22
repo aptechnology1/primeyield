@@ -244,6 +244,43 @@ function SettingsPage() {
       <Button className="w-full h-11" disabled={mut.isPending} onClick={() => mut.mutate()}>
         {mut.isPending ? "Saving…" : "Save settings"}
       </Button>
+
+      <DangerZone />
+    </div>
+  );
+}
+
+function DangerZone() {
+  const wipe = useServerFn(adminWipeAllData);
+  const qc = useQueryClient();
+  const [text, setText] = useState("");
+  const mut = useMutation({
+    mutationFn: () => wipe({ data: { confirm: "DELETE EVERYTHING" } }),
+    onSuccess: () => {
+      toast.success("All site data wiped");
+      setText("");
+      qc.invalidateQueries();
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  return (
+    <div className="bg-destructive/5 border border-destructive/40 rounded-xl p-4 space-y-3">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-destructive flex items-center gap-2">
+        <AlertTriangle className="size-3.5" /> Danger zone
+      </h2>
+      <p className="text-xs text-muted-foreground">
+        Permanently delete every deposit, withdrawal, investment, transaction, referral, check-in and reset every wallet to ₦0. Users, plans and settings are preserved. This cannot be undone.
+      </p>
+      <Label className="text-xs">Type <span className="font-mono font-bold">DELETE EVERYTHING</span> to confirm</Label>
+      <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="DELETE EVERYTHING" />
+      <Button
+        variant="destructive"
+        className="w-full h-11"
+        disabled={mut.isPending || text !== "DELETE EVERYTHING"}
+        onClick={() => mut.mutate()}
+      >
+        {mut.isPending ? "Wiping…" : "Wipe all site data"}
+      </Button>
     </div>
   );
 }
