@@ -427,6 +427,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       admin.from("investments").select("id", { count: "exact", head: true }).eq("user_id", userId),
     ]);
 
+    if (settings && (settings as any).withdrawal_enabled === false) throw new Error("Withdrawals are currently disabled");
     if ((depCountQ.count ?? 0) < 1) throw new Error("You must make at least one deposit before withdrawing");
     if ((invCountQ.count ?? 0) < 1) throw new Error("You must purchase at least one investment plan before withdrawing");
 
