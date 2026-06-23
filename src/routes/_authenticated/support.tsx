@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/support")({
   loader: ({ context }) =>
     context.queryClient.ensureQueryData({ queryKey: ["support-info"], queryFn: () => (getSupportInfo as any)() }),
   component: SupportPage,
-  head: () => ({ meta: [{ title: "Support — Horizon" }] }),
+  head: () => ({ meta: [{ title: "Support — PrimeYield" }] }),
 });
 
 function SupportPage() {

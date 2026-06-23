@@ -16,7 +16,7 @@ export const getPublicSettings = createServerFn({ method: "GET" }).handler(async
     .eq("id", 1)
     .maybeSingle();
   return data ?? {
-    site_name: "Horizon",
+    site_name: "PrimeYield",
     paystack_enabled: true,
     manual_deposit_enabled: true,
     welcome_bonus_amount: 0,

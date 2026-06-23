@@ -221,7 +221,7 @@ function SettingsPage() {
           <Input
             value={form.support_agent_name ?? ""}
             onChange={(e) => set("support_agent_name", e.target.value)}
-            placeholder="e.g. Sarah from Horizon Support"
+            placeholder="e.g. Sarah from PrimeYield Support"
           />
         </Field>
         <Field label="Details / message to users">

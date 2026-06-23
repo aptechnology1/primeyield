@@ -8,10 +8,10 @@ import { ArrowRight, ShieldCheck, TrendingUp, Users } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Horizon — Invest, earn daily" },
-      { name: "description", content: "Open your Horizon account, fund your wallet, and start earning daily cash back from curated investment plans." },
-      { property: "og:title", content: "Horizon — Invest, earn daily" },
-      { property: "og:description", content: "Open your Horizon account, fund your wallet, and start earning daily cash back." },
+      { title: "PrimeYield — Invest, earn daily" },
+      { name: "description", content: "Open your PrimeYield account, fund your wallet, and start earning daily cash back from curated investment plans." },
+      { property: "og:title", content: "PrimeYield — Invest, earn daily" },
+      { property: "og:description", content: "Open your PrimeYield account, fund your wallet, and start earning daily cash back." },
     ],
   }),
   component: Landing,
@@ -23,7 +23,7 @@ function Landing() {
     queryKey: ["public-settings"],
     queryFn: () => fetchSettings(),
   });
-  const name = settings?.site_name ?? "Horizon";
+  const name = settings?.site_name ?? "PrimeYield";
 
   return (
     <div className="min-h-screen bg-background text-foreground">

@@ -39,9 +39,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Horizon — Invest, earn daily" },
-      { name: "description", content: "Horizon is a mobile investment platform. Fund your wallet, buy investment plans, and earn daily cash back." },
-      { property: "og:title", content: "Horizon — Invest, earn daily" },
+      { title: "PrimeYield — Invest, earn daily" },
+      { name: "description", content: "PrimeYield is a mobile investment platform. Fund your wallet, buy investment plans, and earn daily cash back." },
+      { property: "og:title", content: "PrimeYield — Invest, earn daily" },
       { property: "og:description", content: "Mobile investment platform with daily ROI, referral rewards, and instant deposits." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
