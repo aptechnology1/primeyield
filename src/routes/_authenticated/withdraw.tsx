@@ -85,13 +85,28 @@ function WithdrawPage() {
         </div>
       )}
 
+      <section className="bg-primary-soft/40 border border-primary/20 rounded-xl p-4 space-y-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-primary">Instructions</h2>
+        <ul className="text-[11px] text-foreground/80 space-y-1 list-disc pl-4">
+          <li>Minimum withdrawal: {formatNaira(dash.settings?.min_withdrawal ?? 0)} · Maximum: {formatNaira(dash.settings?.max_withdrawal ?? 0)}.</li>
+          <li>Withdrawal fee: {dash.settings?.withdrawal_fee_pct ?? 0}% — deducted from the amount you request.</li>
+          <li>You must have made at least one deposit and purchased at least one investment plan to withdraw.</li>
+          <li>Welcome bonus and locked balances cannot be withdrawn directly.</li>
+          <li>Requests are reviewed and paid out manually — usually within 24 hours on working days.</li>
+          <li>Make sure your bank details are correct; wrong details can delay or fail the payout.</li>
+        </ul>
+      </section>
+
       <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">History</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent withdrawals</h2>
+          <Link to="/withdraw-history" className="text-[11px] font-bold text-primary">View full history →</Link>
+        </div>
         {withdrawals.length === 0 ? (
           <p className="text-xs text-muted-foreground">No withdrawals yet.</p>
         ) : (
           <div className="divide-y divide-border border-t border-b border-border">
-            {withdrawals.map((w: any) => (
+            {withdrawals.slice(0, 2).map((w: any) => (
               <div key={w.id} className="py-3 flex justify-between items-start">
                 <div>
                   <p className="text-xs font-bold">{formatNaira(w.amount)} → {formatNaira(w.net_amount)} net</p>
