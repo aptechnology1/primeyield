@@ -120,13 +120,27 @@ function DepositPage() {
         </Tabs>
       )}
 
+      <section className="bg-primary-soft/40 border border-primary/20 rounded-xl p-4 space-y-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-primary">Instructions</h2>
+        <ul className="text-[11px] text-foreground/80 space-y-1 list-disc pl-4">
+          <li>Minimum deposit: {formatNaira(bank?.min_deposit ?? 0)}.</li>
+          <li><b>Automated:</b> pay with card or bank — funds credit instantly after payment.</li>
+          <li><b>Bank transfer:</b> send the exact amount to the account shown, then submit the form with your sender name / reference. Approval typically takes 5–30 minutes during working hours.</li>
+          <li>Always include the correct reference. Wrong-amount or unverifiable transfers may be rejected.</li>
+          <li>You must complete at least one deposit before you can invest or withdraw.</li>
+        </ul>
+      </section>
+
       <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent deposits</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent deposits</h2>
+          <Link to="/deposit-history" className="text-[11px] font-bold text-primary">View full history →</Link>
+        </div>
         {deposits.length === 0 ? (
           <p className="text-xs text-muted-foreground">No deposits yet.</p>
         ) : (
           <div className="divide-y divide-border border-t border-b border-border">
-            {deposits.map((d: any) => (
+            {deposits.slice(0, 2).map((d: any) => (
               <div key={d.id} className="py-3 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold">{formatNaira(d.amount)} · {d.method}</p>

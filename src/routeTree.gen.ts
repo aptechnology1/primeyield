@@ -16,6 +16,7 @@ import { Route as AuthenticatedWithdrawHistoryRouteImport } from './routes/_auth
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
+import { Route as AuthenticatedReferralsHistoryRouteImport } from './routes/_authenticated/referrals-history'
 import { Route as AuthenticatedReferralsRouteImport } from './routes/_authenticated/referrals'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
@@ -67,6 +68,12 @@ const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
   path: '/support',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReferralsHistoryRoute =
+  AuthenticatedReferralsHistoryRouteImport.update({
+    id: '/referrals-history',
+    path: '/referrals-history',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReferralsRoute = AuthenticatedReferralsRouteImport.update({
   id: '/referrals',
   path: '/referrals',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/plans': typeof AuthenticatedPlansRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
+  '/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/plans': typeof AuthenticatedPlansRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
+  '/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
@@ -198,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/plans': typeof AuthenticatedPlansRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
+  '/_authenticated/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/plans'
     | '/profile'
     | '/referrals'
+    | '/referrals-history'
     | '/support'
     | '/transactions'
     | '/withdraw'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/plans'
     | '/profile'
     | '/referrals'
+    | '/referrals-history'
     | '/support'
     | '/transactions'
     | '/withdraw'
@@ -266,6 +278,7 @@ export interface FileRouteTypes {
     | '/_authenticated/plans'
     | '/_authenticated/profile'
     | '/_authenticated/referrals'
+    | '/_authenticated/referrals-history'
     | '/_authenticated/support'
     | '/_authenticated/transactions'
     | '/_authenticated/withdraw'
@@ -334,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof AuthenticatedSupportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/referrals-history': {
+      id: '/_authenticated/referrals-history'
+      path: '/referrals-history'
+      fullPath: '/referrals-history'
+      preLoaderRoute: typeof AuthenticatedReferralsHistoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/referrals': {
@@ -471,6 +491,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlansRoute: typeof AuthenticatedPlansRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReferralsRoute: typeof AuthenticatedReferralsRoute
+  AuthenticatedReferralsHistoryRoute: typeof AuthenticatedReferralsHistoryRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
@@ -485,6 +506,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlansRoute: AuthenticatedPlansRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReferralsRoute: AuthenticatedReferralsRoute,
+  AuthenticatedReferralsHistoryRoute: AuthenticatedReferralsHistoryRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
