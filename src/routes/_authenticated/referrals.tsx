@@ -69,13 +69,26 @@ function ReferralsPage() {
         )}
       </section>
 
+      <section className="bg-primary-soft/40 border border-primary/20 rounded-xl p-4 space-y-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-primary">Instructions</h2>
+        <ul className="text-[11px] text-foreground/80 space-y-1 list-disc pl-4">
+          <li>Share your link with friends. When they sign up, they join your network.</li>
+          <li>You earn commissions on 3 levels: direct invites (L1), their invites (L2), and theirs (L3).</li>
+          <li>Commissions are paid automatically based on the activity set by the admin (deposit, investment, or daily ROI).</li>
+          <li>Earnings credit straight to your wallet balance and can be withdrawn once you meet the withdrawal conditions.</li>
+        </ul>
+      </section>
+
       <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Earnings history</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Earnings history</h2>
+          <Link to="/referrals-history" className="text-[11px] font-bold text-primary">View full history →</Link>
+        </div>
         {data.earnings.length === 0 ? (
           <p className="text-xs text-muted-foreground">No referral earnings yet.</p>
         ) : (
           <div className="divide-y divide-border border-t border-b border-border">
-            {data.earnings.map((e: any) => (
+            {data.earnings.slice(0, 2).map((e: any) => (
               <div key={e.id} className="py-3 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold">L{e.level} · {e.source_type}</p>
