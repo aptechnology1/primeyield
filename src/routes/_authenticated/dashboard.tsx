@@ -53,7 +53,7 @@ function Dashboard() {
         buttons={(data.settings?.dashboard_popup_buttons as any) ?? []}
       />
       <header className="flex items-center justify-between -mt-2 mb-2">
-        <BrandMark name={data.settings?.site_name ?? "Horizon"} />
+        <BrandMark name={data.settings?.site_name ?? "PrimeYield"} />
         <div className="flex items-center gap-2">
           {data.isAdmin && (
             <Link to="/admin" className="inline-flex items-center gap-1 bg-foreground text-background px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-widest">

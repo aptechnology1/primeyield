@@ -14,8 +14,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in — Horizon" },
-      { name: "description", content: "Sign in or create your Horizon account." },
+      { title: "Sign in — PrimeYield" },
+      { name: "description", content: "Sign in or create your PrimeYield account." },
     ],
   }),
   component: AuthPage,
@@ -53,7 +53,7 @@ function AuthPage() {
         // Auto sign-in (email confirmation is disabled)
         const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
         if (signInErr) throw signInErr;
-        toast.success("Welcome to Horizon");
+        toast.success("Welcome to PrimeYield");
         navigate({ to: "/dashboard" });
       }
     } catch (err: any) {
@@ -71,7 +71,7 @@ function AuthPage() {
       <main className="px-5 py-10 max-w-md w-full mx-auto flex-1">
         <h1 className="text-2xl font-bold mb-1">{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
         <p className="text-sm text-muted-foreground mb-6">
-          {mode === "signin" ? "Sign in to your Horizon account." : "Start earning daily returns in minutes."}
+          {mode === "signin" ? "Sign in to your PrimeYield account." : "Start earning daily returns in minutes."}
         </p>
 
         <form onSubmit={submit} className="space-y-4">
