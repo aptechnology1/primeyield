@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWithdrawHistoryRouteImport } from './routes/_authenticated/withdraw-history'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
@@ -44,6 +45,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWithdrawHistoryRoute =
+  AuthenticatedWithdrawHistoryRouteImport.update({
+    id: '/withdraw-history',
+    path: '/withdraw-history',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
   id: '/withdraw',
   path: '/withdraw',
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/withdraw-history': typeof AuthenticatedWithdrawHistoryRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -169,6 +177,7 @@ export interface FileRoutesByTo {
   '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/withdraw-history': typeof AuthenticatedWithdrawHistoryRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -192,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
+  '/_authenticated/withdraw-history': typeof AuthenticatedWithdrawHistoryRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/transactions'
     | '/withdraw'
+    | '/withdraw-history'
     | '/admin/deposits'
     | '/admin/plans'
     | '/admin/referrals'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/transactions'
     | '/withdraw'
+    | '/withdraw-history'
     | '/admin/deposits'
     | '/admin/plans'
     | '/admin/referrals'
@@ -257,6 +269,7 @@ export interface FileRouteTypes {
     | '/_authenticated/support'
     | '/_authenticated/transactions'
     | '/_authenticated/withdraw'
+    | '/_authenticated/withdraw-history'
     | '/_authenticated/admin/deposits'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/referrals'
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/withdraw-history': {
+      id: '/_authenticated/withdraw-history'
+      path: '/withdraw-history'
+      fullPath: '/withdraw-history'
+      preLoaderRoute: typeof AuthenticatedWithdrawHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/withdraw': {
       id: '/_authenticated/withdraw'
@@ -454,6 +474,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
+  AuthenticatedWithdrawHistoryRoute: typeof AuthenticatedWithdrawHistoryRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -467,6 +488,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
+  AuthenticatedWithdrawHistoryRoute: AuthenticatedWithdrawHistoryRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
