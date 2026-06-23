@@ -253,8 +253,13 @@ export const purchasePlan = createServerFn({ method: "POST" })
     const price = Number(plan.price ?? plan.min_amount);
     if (!(price > 0)) throw new Error("Plan price not set");
 
+    const depCountQ = await admin.from("deposits").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "completed");
+    if ((depCountQ.count ?? 0) < 1) throw new Error("You must make at least one deposit before investing");
+
     const { data: wallet } = await admin.from("wallets").select("balance,non_withdrawable").eq("user_id", userId).maybeSingle();
-    if (!wallet || Number(wallet.balance) < price) throw new Error("Insufficient balance — please deposit first");
+    if (!wallet) throw new Error("Wallet not found");
+    const usable = Number(wallet.balance) - Number(wallet.non_withdrawable ?? 0);
+    if (usable < price) throw new Error("Insufficient usable balance — please deposit first");
 
     // Release welcome bonus / any locked non-withdrawable funds on first plan purchase
     await admin.from("wallets").update({
