@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { LogOut, Users, ShieldCheck, LifeBuoy, Pencil } from "lucide-react";
+import { LogOut, Users, ShieldCheck, LifeBuoy, Pencil, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   loader: ({ context }) =>
@@ -72,6 +72,17 @@ function ProfilePage() {
           <span className="text-xs opacity-60">→</span>
         </Link>
       )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <Link to="/deposit" className="flex flex-col items-center justify-center gap-1 bg-card border border-border p-4 rounded-xl">
+          <ArrowDownToLine className="size-5 text-primary" />
+          <span className="text-xs font-bold">Deposit</span>
+        </Link>
+        <Link to="/withdraw" className="flex flex-col items-center justify-center gap-1 bg-card border border-border p-4 rounded-xl">
+          <ArrowUpFromLine className="size-5 text-primary" />
+          <span className="text-xs font-bold">Withdraw</span>
+        </Link>
+      </div>
 
       <Link to="/referrals" className="flex items-center justify-between bg-card border border-border p-4 rounded-xl">
         <div className="flex items-center gap-3">

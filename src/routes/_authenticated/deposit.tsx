@@ -13,6 +13,7 @@ import { formatNaira, formatDateTime } from "@/lib/format";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Copy, CreditCard, Building2 } from "lucide-react";
+import { InstructionsBlock } from "@/components/InstructionsBlock";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
   loader: ({ context }) =>
@@ -120,16 +121,8 @@ function DepositPage() {
         </Tabs>
       )}
 
-      <section className="bg-primary-soft/40 border border-primary/20 rounded-xl p-4 space-y-2">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-primary">Instructions</h2>
-        <ul className="text-[11px] text-foreground/80 space-y-1 list-disc pl-4">
-          <li>Minimum deposit: {formatNaira(bank?.min_deposit ?? 0)}.</li>
-          <li><b>Automated:</b> pay with card or bank — funds credit instantly after payment.</li>
-          <li><b>Bank transfer:</b> send the exact amount to the account shown, then submit the form with your sender name / reference. Approval typically takes 5–30 minutes during working hours.</li>
-          <li>Always include the correct reference. Wrong-amount or unverifiable transfers may be rejected.</li>
-          <li>You must complete at least one deposit before you can invest or withdraw.</li>
-        </ul>
-      </section>
+      <InstructionsBlock text={(bank as any)?.deposit_instructions ?? ""} />
+
 
       <section className="space-y-3">
         <div className="flex justify-between items-center">

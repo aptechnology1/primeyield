@@ -538,7 +538,8 @@ export const getReferralInfo = createServerFn({ method: "GET" })
       });
     }
 
-    return { referral_code: profile?.referral_code, counts, totals, earnings: earnings ?? [], referredUsers };
+    const { data: settingsRow } = await admin.from("settings").select("referral_instructions").eq("id", 1).maybeSingle();
+    return { referral_code: profile?.referral_code, counts, totals, earnings: earnings ?? [], referredUsers, settings: settingsRow };
   });
 
 // ============================================================
