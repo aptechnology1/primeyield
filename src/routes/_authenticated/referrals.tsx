@@ -5,6 +5,7 @@ import { getReferralInfo } from "@/lib/user.functions";
 import { formatNaira, formatDateTime } from "@/lib/format";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
+import { InstructionsBlock } from "@/components/InstructionsBlock";
 
 export const Route = createFileRoute("/_authenticated/referrals")({
   loader: ({ context }) =>
@@ -69,15 +70,8 @@ function ReferralsPage() {
         )}
       </section>
 
-      <section className="bg-primary-soft/40 border border-primary/20 rounded-xl p-4 space-y-2">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-primary">Instructions</h2>
-        <ul className="text-[11px] text-foreground/80 space-y-1 list-disc pl-4">
-          <li>Share your link with friends. When they sign up, they join your network.</li>
-          <li>You earn commissions on 3 levels: direct invites (L1), their invites (L2), and theirs (L3).</li>
-          <li>Commissions are paid automatically based on the activity set by the admin (deposit, investment, or daily ROI).</li>
-          <li>Earnings credit straight to your wallet balance and can be withdrawn once you meet the withdrawal conditions.</li>
-        </ul>
-      </section>
+      <InstructionsBlock text={(data as any)?.settings?.referral_instructions ?? ""} />
+
 
       <section className="space-y-3">
         <div className="flex justify-between items-center">
