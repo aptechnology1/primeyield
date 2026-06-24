@@ -296,6 +296,7 @@ export type Database = {
           dashboard_popup_message: string
           dashboard_popup_title: string
           deposit_enabled: boolean
+          deposit_instructions: string
           id: number
           investment_enabled: boolean
           maintenance_message: string
@@ -312,6 +313,7 @@ export type Database = {
           ref_l2_pct: number
           ref_l3_pct: number
           ref_source: Database["public"]["Enums"]["referral_source"]
+          referral_instructions: string
           site_name: string
           support_agent_details: string
           support_agent_name: string
@@ -320,6 +322,7 @@ export type Database = {
           updated_at: string
           welcome_bonus_amount: number
           welcome_bonus_withdrawable: boolean
+          withdraw_instructions: string
           withdrawal_enabled: boolean
           withdrawal_fee_pct: number
         }
@@ -330,6 +333,7 @@ export type Database = {
           dashboard_popup_message?: string
           dashboard_popup_title?: string
           deposit_enabled?: boolean
+          deposit_instructions?: string
           id?: number
           investment_enabled?: boolean
           maintenance_message?: string
@@ -346,6 +350,7 @@ export type Database = {
           ref_l2_pct?: number
           ref_l3_pct?: number
           ref_source?: Database["public"]["Enums"]["referral_source"]
+          referral_instructions?: string
           site_name?: string
           support_agent_details?: string
           support_agent_name?: string
@@ -354,6 +359,7 @@ export type Database = {
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
+          withdraw_instructions?: string
           withdrawal_enabled?: boolean
           withdrawal_fee_pct?: number
         }
@@ -364,6 +370,7 @@ export type Database = {
           dashboard_popup_message?: string
           dashboard_popup_title?: string
           deposit_enabled?: boolean
+          deposit_instructions?: string
           id?: number
           investment_enabled?: boolean
           maintenance_message?: string
@@ -380,6 +387,7 @@ export type Database = {
           ref_l2_pct?: number
           ref_l3_pct?: number
           ref_source?: Database["public"]["Enums"]["referral_source"]
+          referral_instructions?: string
           site_name?: string
           support_agent_details?: string
           support_agent_name?: string
@@ -388,6 +396,7 @@ export type Database = {
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
+          withdraw_instructions?: string
           withdrawal_enabled?: boolean
           withdrawal_fee_pct?: number
         }
