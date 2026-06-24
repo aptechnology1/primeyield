@@ -324,6 +324,9 @@ const settingsSchema = z.object({
   support_agent_name: z.string().max(100),
   support_agent_details: z.string().max(2000),
   support_contact_link: z.string().max(500),
+  deposit_instructions: z.string().max(4000),
+  withdraw_instructions: z.string().max(4000),
+  referral_instructions: z.string().max(4000),
 });
 
 export const adminUpdateSettings = createServerFn({ method: "POST" })
@@ -422,7 +425,7 @@ export const getManualBankInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase.from("settings")
-      .select("manual_bank_name,manual_bank_account,manual_bank_account_name,manual_deposit_enabled,paystack_enabled,deposit_enabled,min_deposit,maintenance_mode,maintenance_message")
+      .select("manual_bank_name,manual_bank_account,manual_bank_account_name,manual_deposit_enabled,paystack_enabled,deposit_enabled,min_deposit,maintenance_mode,maintenance_message,deposit_instructions")
       .eq("id", 1).maybeSingle();
     return data;
   });
