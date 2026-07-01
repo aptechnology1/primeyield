@@ -24,7 +24,11 @@ import { Route as AuthenticatedDepositHistoryRouteImport } from './routes/_authe
 import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticated/deposit'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedProfilePersonalRouteImport } from './routes/_authenticated/profile.personal'
+import { Route as AuthenticatedProfilePasswordRouteImport } from './routes/_authenticated/profile.password'
+import { Route as AuthenticatedProfileBankRouteImport } from './routes/_authenticated/profile.bank'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin/withdrawals'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
@@ -111,11 +115,35 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileIndexRoute =
+  AuthenticatedProfileIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedProfilePersonalRoute =
+  AuthenticatedProfilePersonalRouteImport.update({
+    id: '/personal',
+    path: '/personal',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedProfilePasswordRoute =
+  AuthenticatedProfilePasswordRouteImport.update({
+    id: '/password',
+    path: '/password',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedProfileBankRoute =
+  AuthenticatedProfileBankRouteImport.update({
+    id: '/bank',
+    path: '/bank',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
 const AuthenticatedAdminWithdrawalsRoute =
   AuthenticatedAdminWithdrawalsRouteImport.update({
     id: '/withdrawals',
@@ -165,7 +193,7 @@ export interface FileRoutesByFullPath {
   '/deposit': typeof AuthenticatedDepositRoute
   '/deposit-history': typeof AuthenticatedDepositHistoryRoute
   '/plans': typeof AuthenticatedPlansRoute
-  '/profile': typeof AuthenticatedProfileRoute
+  '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/referrals': typeof AuthenticatedReferralsRoute
   '/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/support': typeof AuthenticatedSupportRoute
@@ -179,7 +207,11 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/profile/bank': typeof AuthenticatedProfileBankRoute
+  '/profile/password': typeof AuthenticatedProfilePasswordRoute
+  '/profile/personal': typeof AuthenticatedProfilePersonalRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/profile/': typeof AuthenticatedProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -188,7 +220,6 @@ export interface FileRoutesByTo {
   '/deposit': typeof AuthenticatedDepositRoute
   '/deposit-history': typeof AuthenticatedDepositHistoryRoute
   '/plans': typeof AuthenticatedPlansRoute
-  '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
   '/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/support': typeof AuthenticatedSupportRoute
@@ -202,7 +233,11 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/profile/bank': typeof AuthenticatedProfileBankRoute
+  '/profile/password': typeof AuthenticatedProfilePasswordRoute
+  '/profile/personal': typeof AuthenticatedProfilePersonalRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -214,7 +249,7 @@ export interface FileRoutesById {
   '/_authenticated/deposit': typeof AuthenticatedDepositRoute
   '/_authenticated/deposit-history': typeof AuthenticatedDepositHistoryRoute
   '/_authenticated/plans': typeof AuthenticatedPlansRoute
-  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
   '/_authenticated/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
@@ -228,7 +263,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/_authenticated/profile/bank': typeof AuthenticatedProfileBankRoute
+  '/_authenticated/profile/password': typeof AuthenticatedProfilePasswordRoute
+  '/_authenticated/profile/personal': typeof AuthenticatedProfilePersonalRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -254,7 +293,11 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/withdrawals'
+    | '/profile/bank'
+    | '/profile/password'
+    | '/profile/personal'
     | '/admin/'
+    | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -263,7 +306,6 @@ export interface FileRouteTypes {
     | '/deposit'
     | '/deposit-history'
     | '/plans'
-    | '/profile'
     | '/referrals'
     | '/referrals-history'
     | '/support'
@@ -277,7 +319,11 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/withdrawals'
+    | '/profile/bank'
+    | '/profile/password'
+    | '/profile/personal'
     | '/admin'
+    | '/profile'
   id:
     | '__root__'
     | '/'
@@ -302,7 +348,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/withdrawals'
+    | '/_authenticated/profile/bank'
+    | '/_authenticated/profile/password'
+    | '/_authenticated/profile/personal'
     | '/_authenticated/admin/'
+    | '/_authenticated/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -418,12 +468,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile/': {
+      id: '/_authenticated/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/profile/personal': {
+      id: '/_authenticated/profile/personal'
+      path: '/personal'
+      fullPath: '/profile/personal'
+      preLoaderRoute: typeof AuthenticatedProfilePersonalRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/password': {
+      id: '/_authenticated/profile/password'
+      path: '/password'
+      fullPath: '/profile/password'
+      preLoaderRoute: typeof AuthenticatedProfilePasswordRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/bank': {
+      id: '/_authenticated/profile/bank'
+      path: '/bank'
+      fullPath: '/profile/bank'
+      preLoaderRoute: typeof AuthenticatedProfileBankRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
     }
     '/_authenticated/admin/withdrawals': {
       id: '/_authenticated/admin/withdrawals'
@@ -505,13 +583,30 @@ const AuthenticatedAdminRouteRouteWithChildren =
     AuthenticatedAdminRouteRouteChildren,
   )
 
+interface AuthenticatedProfileRouteChildren {
+  AuthenticatedProfileBankRoute: typeof AuthenticatedProfileBankRoute
+  AuthenticatedProfilePasswordRoute: typeof AuthenticatedProfilePasswordRoute
+  AuthenticatedProfilePersonalRoute: typeof AuthenticatedProfilePersonalRoute
+  AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+}
+
+const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
+  AuthenticatedProfileBankRoute: AuthenticatedProfileBankRoute,
+  AuthenticatedProfilePasswordRoute: AuthenticatedProfilePasswordRoute,
+  AuthenticatedProfilePersonalRoute: AuthenticatedProfilePersonalRoute,
+  AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+}
+
+const AuthenticatedProfileRouteWithChildren =
+  AuthenticatedProfileRoute._addFileChildren(AuthenticatedProfileRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepositRoute: typeof AuthenticatedDepositRoute
   AuthenticatedDepositHistoryRoute: typeof AuthenticatedDepositHistoryRoute
   AuthenticatedPlansRoute: typeof AuthenticatedPlansRoute
-  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedReferralsRoute: typeof AuthenticatedReferralsRoute
   AuthenticatedReferralsHistoryRoute: typeof AuthenticatedReferralsHistoryRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
@@ -526,7 +621,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDepositRoute: AuthenticatedDepositRoute,
   AuthenticatedDepositHistoryRoute: AuthenticatedDepositHistoryRoute,
   AuthenticatedPlansRoute: AuthenticatedPlansRoute,
-  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedReferralsRoute: AuthenticatedReferralsRoute,
   AuthenticatedReferralsHistoryRoute: AuthenticatedReferralsHistoryRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
@@ -546,13 +641,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

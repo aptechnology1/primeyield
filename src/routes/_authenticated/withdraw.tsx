@@ -46,7 +46,7 @@ function WithdrawPage() {
     <div className="px-5 pt-6 pb-6 space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Withdraw</h1>
-        <p className="text-sm text-muted-foreground">Withdrawals are processed manually by our team.</p>
+        <p className="text-sm text-muted-foreground">Withdrawals are automatically paid within 1–24 hours.</p>
       </header>
 
       <div className="bg-foreground text-background rounded-xl p-4 space-y-1">
