@@ -327,9 +327,14 @@ const settingsSchema = z.object({
   support_agent_name: z.string().max(100),
   support_agent_details: z.string().max(2000),
   support_contact_link: z.string().max(500),
-  deposit_instructions: z.string().max(4000),
-  withdraw_instructions: z.string().max(4000),
-  referral_instructions: z.string().max(4000),
+  deposit_instructions: z.string().max(4000).optional().default(""),
+  withdraw_instructions: z.string().max(4000).optional().default(""),
+  referral_instructions: z.string().max(4000).optional().default(""),
+  support_contacts: z.array(z.object({
+    name: z.string().min(1).max(100),
+    details: z.string().max(2000).optional().default(""),
+    link: z.string().max(500).optional().default(""),
+  })).max(20).optional().default([]),
 });
 
 export const adminUpdateSettings = createServerFn({ method: "POST" })
