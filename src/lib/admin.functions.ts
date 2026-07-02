@@ -160,20 +160,22 @@ export const adminListDeposits = createServerFn({ method: "GET" })
 
 export const adminApproveDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string; amount?: number }) =>
+    z.object({ id: z.string().uuid(), amount: z.number().positive().optional() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: dep } = await supabaseAdmin.from("deposits").select("*").eq("id", data.id).maybeSingle();
     if (!dep || dep.status !== "pending") throw new Error("Not pending");
-    const amount = Number(dep.amount);
+    const amount = Number(data.amount ?? dep.amount);
+    if (!(amount > 0)) throw new Error("Amount must be positive");
     const { data: w } = await supabaseAdmin.from("wallets").select("balance,total_deposited").eq("user_id", dep.user_id).maybeSingle();
     await supabaseAdmin.from("wallets").update({
       balance: Number(w?.balance ?? 0) + amount,
       total_deposited: Number(w?.total_deposited ?? 0) + amount,
       updated_at: new Date().toISOString(),
     }).eq("user_id", dep.user_id);
-    await supabaseAdmin.from("deposits").update({ status: "completed", processed_at: new Date().toISOString() }).eq("id", dep.id);
+    await supabaseAdmin.from("deposits").update({ amount, status: "completed", processed_at: new Date().toISOString() }).eq("id", dep.id);
     await supabaseAdmin.from("transactions").insert({
       user_id: dep.user_id, type: "deposit", amount, status: "completed",
       description: `Manual deposit approved`,
@@ -203,6 +205,7 @@ export const adminApproveDeposit = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
 
 export const adminRejectDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -324,9 +327,14 @@ const settingsSchema = z.object({
   support_agent_name: z.string().max(100),
   support_agent_details: z.string().max(2000),
   support_contact_link: z.string().max(500),
-  deposit_instructions: z.string().max(4000),
-  withdraw_instructions: z.string().max(4000),
-  referral_instructions: z.string().max(4000),
+  deposit_instructions: z.string().max(4000).optional().default(""),
+  withdraw_instructions: z.string().max(4000).optional().default(""),
+  referral_instructions: z.string().max(4000).optional().default(""),
+  support_contacts: z.array(z.object({
+    name: z.string().min(1).max(100),
+    details: z.string().max(2000).optional().default(""),
+    link: z.string().max(500).optional().default(""),
+  })).max(20).optional().default([]),
 });
 
 export const adminUpdateSettings = createServerFn({ method: "POST" })

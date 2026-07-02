@@ -4,10 +4,12 @@ import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-q
 import { adminListDeposits, adminApproveDeposit, adminRejectDeposit } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatNaira, formatDateTime } from "@/lib/format";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Eye } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/deposits")({
   loader: ({ context }) =>
@@ -44,11 +46,12 @@ function DepCard({ d }: { d: any }) {
   const qc = useQueryClient();
   const approve = useServerFn(adminApproveDeposit);
   const reject = useServerFn(adminRejectDeposit);
+  const [amount, setAmount] = useState<string>(String(d.amount ?? ""));
   const [note, setNote] = useState("");
 
   const aMut = useMutation({
-    mutationFn: () => approve({ data: { id: d.id } }),
-    onSuccess: () => { toast.success("Approved"); qc.invalidateQueries({ queryKey: ["admin-deposits"] }); },
+    mutationFn: () => approve({ data: { id: d.id, amount: Number(amount) } }),
+    onSuccess: () => { toast.success("Approved & credited"); qc.invalidateQueries({ queryKey: ["admin-deposits"] }); },
     onError: (e: any) => toast.error(e.message),
   });
   const rMut = useMutation({
@@ -56,6 +59,8 @@ function DepCard({ d }: { d: any }) {
     onSuccess: () => { toast.success("Rejected"); qc.invalidateQueries({ queryKey: ["admin-deposits"] }); },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const isPaystack = d.method === "paystack";
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 space-y-2">
@@ -74,21 +79,64 @@ function DepCard({ d }: { d: any }) {
       {d.proof_note && <p className="text-[11px] bg-muted/40 p-2 rounded">{d.proof_note}</p>}
       {d.paystack_ref && <p className="text-[10px] text-muted-foreground font-mono">ref: {d.paystack_ref}</p>}
       {d.admin_note && <p className="text-[11px] text-destructive">{d.admin_note}</p>}
-      {d.status === "pending" && (
+
+      {isPaystack ? (
+        <div className="pt-1">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline"><Eye className="size-3 mr-1" /> View details</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Automated deposit details</DialogTitle></DialogHeader>
+              <div className="space-y-2 mt-4 text-sm">
+                <Row label="Amount" value={formatNaira(d.amount)} />
+                <Row label="Email" value={d.profile?.email ?? "—"} />
+                <Row label="Name" value={d.profile?.full_name ?? "—"} />
+                <Row label="Time" value={formatDateTime(d.created_at)} />
+                <Row label="Reference" value={d.paystack_ref ?? "—"} />
+                <Row label="Status" value={d.status} />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      ) : d.status === "pending" ? (
         <div className="flex gap-2 pt-1">
-          <Button size="sm" disabled={aMut.isPending} onClick={() => aMut.mutate()}>Approve & credit</Button>
+          <Dialog>
+            <DialogTrigger asChild><Button size="sm">Approve</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Approve & credit deposit</DialogTitle></DialogHeader>
+              <div className="space-y-3 mt-4">
+                <Label className="text-xs">Amount to credit (₦)</Label>
+                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                <p className="text-[11px] text-muted-foreground">User claimed: {formatNaira(d.amount)}</p>
+                <Button disabled={!amount || Number(amount) <= 0 || aMut.isPending} onClick={() => aMut.mutate()}>
+                  {aMut.isPending ? "Crediting…" : `Credit ${formatNaira(Number(amount || 0))}`}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog>
             <DialogTrigger asChild><Button size="sm" variant="outline">Reject</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Reject deposit</DialogTitle></DialogHeader>
               <div className="space-y-3 mt-4">
+                <Label className="text-xs">Reason (shown to user)</Label>
                 <Input placeholder="Reason" value={note} onChange={(e) => setNote(e.target.value)} />
                 <Button variant="destructive" disabled={!note || rMut.isPending} onClick={() => rMut.mutate()}>Reject</Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
-      )}
+      ) : null}
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-3 border-b border-border pb-1.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium text-right break-all">{value}</span>
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { Route as AuthenticatedReferralsHistoryRouteImport } from './routes/_aut
 import { Route as AuthenticatedReferralsRouteImport } from './routes/_authenticated/referrals'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
+import { Route as AuthenticatedMyPlansRouteImport } from './routes/_authenticated/my-plans'
 import { Route as AuthenticatedDepositHistoryRouteImport } from './routes/_authenticated/deposit-history'
 import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticated/deposit'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -92,6 +93,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 const AuthenticatedPlansRoute = AuthenticatedPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMyPlansRoute = AuthenticatedMyPlansRouteImport.update({
+  id: '/my-plans',
+  path: '/my-plans',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDepositHistoryRoute =
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
   '/deposit-history': typeof AuthenticatedDepositHistoryRoute
+  '/my-plans': typeof AuthenticatedMyPlansRoute
   '/plans': typeof AuthenticatedPlansRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/referrals': typeof AuthenticatedReferralsRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
   '/deposit-history': typeof AuthenticatedDepositHistoryRoute
+  '/my-plans': typeof AuthenticatedMyPlansRoute
   '/plans': typeof AuthenticatedPlansRoute
   '/referrals': typeof AuthenticatedReferralsRoute
   '/referrals-history': typeof AuthenticatedReferralsHistoryRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/deposit': typeof AuthenticatedDepositRoute
   '/_authenticated/deposit-history': typeof AuthenticatedDepositHistoryRoute
+  '/_authenticated/my-plans': typeof AuthenticatedMyPlansRoute
   '/_authenticated/plans': typeof AuthenticatedPlansRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/deposit'
     | '/deposit-history'
+    | '/my-plans'
     | '/plans'
     | '/profile'
     | '/referrals'
@@ -305,6 +315,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/deposit'
     | '/deposit-history'
+    | '/my-plans'
     | '/plans'
     | '/referrals'
     | '/referrals-history'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/deposit'
     | '/_authenticated/deposit-history'
+    | '/_authenticated/my-plans'
     | '/_authenticated/plans'
     | '/_authenticated/profile'
     | '/_authenticated/referrals'
@@ -438,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/plans'
       fullPath: '/plans'
       preLoaderRoute: typeof AuthenticatedPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/my-plans': {
+      id: '/_authenticated/my-plans'
+      path: '/my-plans'
+      fullPath: '/my-plans'
+      preLoaderRoute: typeof AuthenticatedMyPlansRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/deposit-history': {
@@ -605,6 +624,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepositRoute: typeof AuthenticatedDepositRoute
   AuthenticatedDepositHistoryRoute: typeof AuthenticatedDepositHistoryRoute
+  AuthenticatedMyPlansRoute: typeof AuthenticatedMyPlansRoute
   AuthenticatedPlansRoute: typeof AuthenticatedPlansRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedReferralsRoute: typeof AuthenticatedReferralsRoute
@@ -620,6 +640,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepositRoute: AuthenticatedDepositRoute,
   AuthenticatedDepositHistoryRoute: AuthenticatedDepositHistoryRoute,
+  AuthenticatedMyPlansRoute: AuthenticatedMyPlansRoute,
   AuthenticatedPlansRoute: AuthenticatedPlansRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedReferralsRoute: AuthenticatedReferralsRoute,

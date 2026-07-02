@@ -12,15 +12,24 @@ export const Route = createFileRoute("/_authenticated/support")({
   head: () => ({ meta: [{ title: "Support — PrimeYield" }] }),
 });
 
+type Contact = { name: string; details?: string; link?: string };
+
 function SupportPage() {
   const fetchInfo = useServerFn(getSupportInfo);
   const { data } = useSuspenseQuery({ queryKey: ["support-info"], queryFn: () => fetchInfo() });
 
-  const title = data?.support_title || "Support";
-  const agent = data?.support_agent_name?.trim();
-  const details = data?.support_agent_details?.trim();
-  const link = data?.support_contact_link?.trim();
-  const hasContent = agent || details || link;
+  const title = (data as any)?.support_title || "Support";
+  const legacy: Contact | null = ((data as any)?.support_agent_name ||
+    (data as any)?.support_agent_details ||
+    (data as any)?.support_contact_link)
+    ? {
+        name: (data as any)?.support_agent_name || "Support",
+        details: (data as any)?.support_agent_details || "",
+        link: (data as any)?.support_contact_link || "",
+      }
+    : null;
+  const list: Contact[] = Array.isArray((data as any)?.support_contacts) ? (data as any).support_contacts : [];
+  const contacts: Contact[] = list.length ? list : legacy ? [legacy] : [];
 
   return (
     <div className="px-5 pt-6 pb-6 space-y-6">
@@ -34,33 +43,32 @@ function SupportPage() {
         </div>
       </header>
 
-      {!hasContent ? (
+      {contacts.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-6 text-center">
           <p className="text-sm text-muted-foreground">
             Support details haven't been added yet. Please check back soon.
           </p>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-          {agent && (
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Your agent</p>
-              <p className="text-base font-bold mt-1">{agent}</p>
+        <div className="space-y-3">
+          {contacts.map((c, i) => (
+            <div key={i} className="bg-card border border-border rounded-xl p-5 space-y-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Contact</p>
+                <p className="text-base font-bold mt-1">{c.name}</p>
+              </div>
+              {c.details && (
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">{c.details}</p>
+              )}
+              {c.link && (
+                <a href={c.link} target="_blank" rel="noopener noreferrer" className="block">
+                  <Button className="w-full h-11">
+                    <ExternalLink className="size-4 mr-2" /> Contact now
+                  </Button>
+                </a>
+              )}
             </div>
-          )}
-          {details && (
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Contact details</p>
-              <p className="text-sm whitespace-pre-wrap mt-1 leading-relaxed">{details}</p>
-            </div>
-          )}
-          {link && (
-            <a href={link} target="_blank" rel="noopener noreferrer" className="block">
-              <Button className="w-full h-11">
-                <ExternalLink className="size-4 mr-2" /> Contact support
-              </Button>
-            </a>
-          )}
+          ))}
         </div>
       )}
     </div>

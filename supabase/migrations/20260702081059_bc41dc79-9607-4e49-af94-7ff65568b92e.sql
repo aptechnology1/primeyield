@@ -1,0 +1,1 @@
+ALTER TABLE public.settings ADD COLUMN IF NOT EXISTS support_contacts jsonb NOT NULL DEFAULT '[]'::jsonb;
