@@ -318,6 +318,7 @@ export type Database = {
           support_agent_details: string
           support_agent_name: string
           support_contact_link: string
+          support_contacts: Json
           support_title: string
           updated_at: string
           welcome_bonus_amount: number
@@ -355,6 +356,7 @@ export type Database = {
           support_agent_details?: string
           support_agent_name?: string
           support_contact_link?: string
+          support_contacts?: Json
           support_title?: string
           updated_at?: string
           welcome_bonus_amount?: number
@@ -392,6 +394,7 @@ export type Database = {
           support_agent_details?: string
           support_agent_name?: string
           support_contact_link?: string
+          support_contacts?: Json
           support_title?: string
           updated_at?: string
           welcome_bonus_amount?: number
