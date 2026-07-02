@@ -59,6 +59,14 @@ function SettingsPage() {
       support_agent_name: form.support_agent_name ?? "",
       support_agent_details: form.support_agent_details ?? "",
       support_contact_link: form.support_contact_link ?? "",
+      support_contacts: Array.isArray(form.support_contacts)
+        ? form.support_contacts.filter((c: any) => c?.name).map((c: any) => ({
+            name: c.name, details: c.details ?? "", link: c.link ?? "",
+          }))
+        : [],
+      deposit_instructions: form.deposit_instructions ?? "",
+      withdraw_instructions: form.withdraw_instructions ?? "",
+      referral_instructions: form.referral_instructions ?? "",
     } as any }),
     onSuccess: () => {
       toast.success("Settings saved");
