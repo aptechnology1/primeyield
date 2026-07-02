@@ -578,7 +578,7 @@ export const getSupportInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase.from("settings")
-      .select("support_title,support_agent_name,support_agent_details,support_contact_link,site_name")
+      .select("support_title,support_agent_name,support_agent_details,support_contact_link,support_contacts,site_name")
       .eq("id", 1).maybeSingle();
     return data;
   });
