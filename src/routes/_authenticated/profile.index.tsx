@@ -80,9 +80,10 @@ function ProfileIndex() {
       )}
 
       <Section title="My Account">
-        <Item to="/plans" icon={BarChart3} label="My Portfolio" />
+        <Item to="/my-plans" icon={BarChart3} label="My Plans" />
         <Item to="/referrals" icon={Users} label="My Network" />
       </Section>
+
 
       <Section title="Transactions">
         <Item to="/transactions" icon={Receipt} label="Transaction History" />
