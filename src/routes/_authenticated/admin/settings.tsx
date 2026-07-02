@@ -249,6 +249,65 @@ function SettingsPage() {
         </Field>
       </Section>
 
+      <Section title="Support contacts (multiple)">
+        <p className="text-[11px] text-muted-foreground">Add every support line users can reach. All are shown on the Support page.</p>
+        {(form.support_contacts ?? []).map((c: any, i: number) => (
+          <div key={i} className="border border-border rounded-lg p-3 space-y-2">
+            <div className="flex gap-2 items-center">
+              <Input
+                value={c.name ?? ""}
+                placeholder="Name / label (e.g. WhatsApp Support)"
+                onChange={(e) => {
+                  const arr = [...(form.support_contacts ?? [])];
+                  arr[i] = { ...arr[i], name: e.target.value };
+                  set("support_contacts", arr);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const arr = [...(form.support_contacts ?? [])];
+                  arr.splice(i, 1);
+                  set("support_contacts", arr);
+                }}
+                className="size-9 inline-flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-destructive"
+                aria-label="Remove contact"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+            <Textarea
+              rows={2}
+              value={c.details ?? ""}
+              placeholder="Details (phone, email, hours…)"
+              onChange={(e) => {
+                const arr = [...(form.support_contacts ?? [])];
+                arr[i] = { ...arr[i], details: e.target.value };
+                set("support_contacts", arr);
+              }}
+            />
+            <Input
+              value={c.link ?? ""}
+              placeholder="Link (https://wa.me/…  or mailto:…) — optional"
+              onChange={(e) => {
+                const arr = [...(form.support_contacts ?? [])];
+                arr[i] = { ...arr[i], link: e.target.value };
+                set("support_contacts", arr);
+              }}
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => set("support_contacts", [...(form.support_contacts ?? []), { name: "", details: "", link: "" }])}
+          className="w-full inline-flex items-center justify-center gap-1 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Plus className="size-3" /> Add support contact
+        </button>
+      </Section>
+
+
+
       <Button className="w-full h-11" disabled={mut.isPending} onClick={() => mut.mutate()}>
         {mut.isPending ? "Saving…" : "Save settings"}
       </Button>
