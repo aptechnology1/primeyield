@@ -34,11 +34,8 @@ export const getPublicSettings = createServerFn({ method: "GET" }).handler(async
 export const validateReferralCode = createServerFn({ method: "POST" })
   .inputValidator((data: { code: string }) => z.object({ code: z.string().trim().min(1).max(20) }).parse(data))
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    });
-    const { data: row } = await sb
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
       .from("profiles")
       .select("id")
       .eq("referral_code", data.code.toUpperCase())
