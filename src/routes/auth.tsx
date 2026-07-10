@@ -43,6 +43,11 @@ function AuthPage() {
         navigate({ to: "/dashboard" });
       } else {
         if (password.length < 6) throw new Error("Password must be at least 6 characters");
+        const trimmedRef = ref.trim();
+        if (trimmedRef) {
+          const res = await validateReferralCode({ data: { code: trimmedRef } });
+          if (!res.valid) throw new Error("Invalid referral code");
+        }
         const { error: signUpErr } = await supabase.auth.signUp({
           email, password,
           options: {
