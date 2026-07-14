@@ -73,7 +73,7 @@ function UserCard({ u }: { u: any }) {
           {isAdmin && <span className="text-[9px] font-bold text-primary uppercase">Admin</span>}
         </div>
       </div>
-      <div className="flex gap-2 text-xs">
+      <div className="flex gap-2 text-xs flex-wrap">
         <Button size="sm" variant={isAdmin ? "outline" : "default"} onClick={() => roleMut.mutate(!isAdmin)} disabled={roleMut.isPending}>
           {isAdmin ? "Revoke admin" : "Make admin"}
         </Button>
@@ -88,6 +88,11 @@ function UserCard({ u }: { u: any }) {
             </div>
           </DialogContent>
         </Dialog>
+        <Button size="sm" variant="ghost" className="text-destructive ml-auto"
+          disabled={delMut.isPending}
+          onClick={() => { if (confirm(`Permanently delete ${u.email}? This removes their account, wallet, deposits, investments, and all history. Cannot be undone.`)) delMut.mutate(); }}>
+          Delete user
+        </Button>
       </div>
     </div>
   );
