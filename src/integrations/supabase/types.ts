@@ -692,6 +692,7 @@ export type Database = {
         | "welcome_bonus"
         | "daily_checkin"
         | "refund"
+        | "reward"
       user_task_status: "available" | "pending" | "completed"
     }
     CompositeTypes: {
@@ -840,6 +841,7 @@ export const Constants = {
         "welcome_bonus",
         "daily_checkin",
         "refund",
+        "reward",
       ],
       user_task_status: ["available", "pending", "completed"],
     },
