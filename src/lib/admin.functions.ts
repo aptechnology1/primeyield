@@ -437,3 +437,243 @@ export const getManualBankInfo = createServerFn({ method: "GET" })
       .eq("id", 1).maybeSingle();
     return data;
   });
+
+// ============================================================
+// DELETE USER (hard, cascades)
+// ============================================================
+export const adminDeleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    if (data.userId === context.userId) throw new Error("You can't delete your own account");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+// ============================================================
+// INVESTMENTS (purchased plans)
+// ============================================================
+export const adminListInvestments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: invs } = await supabaseAdmin.from("investments").select("*").order("started_at", { ascending: false }).limit(500);
+    const ids = [...new Set((invs ?? []).map((i: any) => i.user_id))];
+    const { data: profs } = await supabaseAdmin.from("profiles").select("id,email,full_name").in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    const pMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    return (invs ?? []).map((i: any) => ({ ...i, profile: pMap.get(i.user_id) ?? null }));
+  });
+
+export const adminDeleteInvestment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("investments").delete().eq("id", data.id);
+    return { ok: true };
+  });
+
+export const adminCompleteInvestment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: inv } = await supabaseAdmin.from("investments").select("*").eq("id", data.id).maybeSingle();
+    if (!inv) throw new Error("Not found");
+    if (inv.status === "completed") return { ok: true, message: "Already complete" };
+    // Pay remaining ROI + principal (if applicable)
+    const remaining = Math.max(0, Number(inv.duration_days) - Number(inv.days_paid));
+    const dailyAmount = Number(inv.amount) * (Number(inv.daily_roi_pct) / 100);
+    const remainingPayout = dailyAmount * remaining;
+    const principalReturn = inv.return_principal ? Number(inv.amount) : 0;
+    if (remainingPayout > 0 || principalReturn > 0) {
+      const { data: w } = await supabaseAdmin.from("wallets").select("balance,total_earned").eq("user_id", inv.user_id).maybeSingle();
+      await supabaseAdmin.from("wallets").update({
+        balance: Number(w?.balance ?? 0) + remainingPayout + principalReturn,
+        total_earned: Number(w?.total_earned ?? 0) + remainingPayout,
+        updated_at: new Date().toISOString(),
+      }).eq("user_id", inv.user_id);
+      if (remainingPayout > 0) {
+        await supabaseAdmin.from("transactions").insert({
+          user_id: inv.user_id, type: "roi", amount: remainingPayout,
+          description: `Admin completed ${inv.plan_name} — remaining ROI`,
+        });
+      }
+      if (principalReturn > 0) {
+        await supabaseAdmin.from("transactions").insert({
+          user_id: inv.user_id, type: "refund", amount: principalReturn,
+          description: `Admin completed ${inv.plan_name} — principal returned`,
+        });
+      }
+    }
+    await supabaseAdmin.from("investments").update({
+      status: "completed",
+      days_paid: inv.duration_days,
+      total_earned: Number(inv.total_earned) + remainingPayout,
+      last_payout_at: new Date().toISOString(),
+    }).eq("id", data.id);
+    return { ok: true };
+  });
+
+export const adminRestartInvestment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: inv } = await supabaseAdmin.from("investments").select("*").eq("id", data.id).maybeSingle();
+    if (!inv) throw new Error("Not found");
+    const now = new Date();
+    await supabaseAdmin.from("investments").update({
+      status: "active",
+      days_paid: 0,
+      total_earned: 0,
+      started_at: now.toISOString(),
+      last_payout_at: now.toISOString(),
+      ends_at: new Date(now.getTime() + Number(inv.duration_days) * 86_400_000).toISOString(),
+    }).eq("id", data.id);
+    return { ok: true };
+  });
+
+// ============================================================
+// TASKS (admin CRUD)
+// ============================================================
+export const adminListTasks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("tasks").select("*").order("sort_order").order("created_at");
+    return data ?? [];
+  });
+
+const taskSchema = z.object({
+  id: z.string().uuid().optional(),
+  title: z.string().min(1).max(200),
+  description: z.string().max(1000).optional().nullable(),
+  task_type: z.enum(["refer_users", "deposit_amount", "invest_plan", "manual_claim"]),
+  target_value: z.number().min(0),
+  target_plan_id: z.string().uuid().nullable().optional(),
+  reward: z.number().min(0),
+  sort_order: z.number().int(),
+  is_active: z.boolean(),
+});
+
+export const adminUpsertTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) => taskSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const row: any = { ...data };
+    if (data.id) {
+      const { error } = await supabaseAdmin.from("tasks").update(row).eq("id", data.id);
+      if (error) throw error;
+    } else {
+      delete row.id;
+      const { error } = await supabaseAdmin.from("tasks").insert(row);
+      if (error) throw error;
+    }
+    return { ok: true };
+  });
+
+export const adminDeleteTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("tasks").delete().eq("id", data.id);
+    return { ok: true };
+  });
+
+export const adminSetTasksEnabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { enabled: boolean }) => z.object({ enabled: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("settings").update({ tasks_enabled: data.enabled } as any).eq("id", 1);
+    return { ok: true };
+  });
+
+// Manual task claims queue (task_type='manual_claim' pending user_tasks)
+export const adminListTaskClaims = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: ut } = await supabaseAdmin.from("user_tasks").select("*").eq("status", "pending").order("created_at", { ascending: false }).limit(200);
+    const taskIds = [...new Set((ut ?? []).map((u: any) => u.task_id))];
+    const userIds = [...new Set((ut ?? []).map((u: any) => u.user_id))];
+    const [{ data: tasks }, { data: profs }] = await Promise.all([
+      supabaseAdmin.from("tasks").select("*").in("id", taskIds.length ? taskIds : ["00000000-0000-0000-0000-000000000000"]),
+      supabaseAdmin.from("profiles").select("id,email,full_name").in("id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]),
+    ]);
+    const tMap = new Map((tasks ?? []).map((t: any) => [t.id, t]));
+    const pMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    return (ut ?? []).map((u: any) => ({ ...u, task: tMap.get(u.task_id), profile: pMap.get(u.user_id) }));
+  });
+
+export const adminApproveTaskClaim = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; approve: boolean }) =>
+    z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: ut } = await supabaseAdmin.from("user_tasks").select("*").eq("id", data.id).maybeSingle();
+    if (!ut || ut.status !== "pending") throw new Error("Not pending");
+    const { data: task } = await supabaseAdmin.from("tasks").select("*").eq("id", ut.task_id).maybeSingle();
+    if (!task) throw new Error("Task missing");
+
+    if (!data.approve) {
+      await supabaseAdmin.from("user_tasks").delete().eq("id", data.id);
+      return { ok: true };
+    }
+    const reward = Number(task.reward);
+    if (reward > 0) {
+      const { data: w } = await supabaseAdmin.from("wallets").select("balance").eq("user_id", ut.user_id).maybeSingle();
+      await supabaseAdmin.from("wallets").update({
+        balance: Number(w?.balance ?? 0) + reward, updated_at: new Date().toISOString(),
+      }).eq("user_id", ut.user_id);
+      await supabaseAdmin.from("transactions").insert({
+        user_id: ut.user_id, type: "reward", amount: reward,
+        description: `Task reward: ${task.title}`,
+      });
+    }
+    await supabaseAdmin.from("user_tasks").update({
+      status: "completed", completed_at: new Date().toISOString(),
+    }).eq("id", data.id);
+    return { ok: true };
+  });
+
+// ============================================================
+// PAGE CONTENT (admin editor)
+// ============================================================
+export const adminUpsertPageContent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { pageKey: string; content: Record<string, string>; colors: Record<string, string> }) =>
+    z.object({
+      pageKey: z.string().min(1).max(100),
+      content: z.record(z.string(), z.string().max(5000)),
+      colors: z.record(z.string(), z.string().max(200)),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("page_content").upsert({
+      page_key: data.pageKey,
+      content: data.content as any,
+      colors: data.colors as any,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "page_key" });
+    return { ok: true };
+  });
+
