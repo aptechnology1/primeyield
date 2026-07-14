@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
-import { adminListUsers, adminSetRole, adminAdjustWallet } from "@/lib/admin.functions";
+import { adminListUsers, adminSetRole, adminAdjustWallet, adminDeleteUser } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -39,6 +39,7 @@ function UserCard({ u }: { u: any }) {
   const qc = useQueryClient();
   const setRole = useServerFn(adminSetRole);
   const adjust = useServerFn(adminAdjustWallet);
+  const del = useServerFn(adminDeleteUser);
   const [delta, setDelta] = useState("");
   const [note, setNote] = useState("");
   const isAdmin = u.roles?.includes("admin");
@@ -51,6 +52,11 @@ function UserCard({ u }: { u: any }) {
   const adjMut = useMutation({
     mutationFn: () => adjust({ data: { userId: u.id, delta: Number(delta), note } }),
     onSuccess: () => { toast.success("Wallet adjusted"); setDelta(""); setNote(""); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const delMut = useMutation({
+    mutationFn: () => del({ data: { userId: u.id } }),
+    onSuccess: () => { toast.success("User deleted"); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -67,7 +73,7 @@ function UserCard({ u }: { u: any }) {
           {isAdmin && <span className="text-[9px] font-bold text-primary uppercase">Admin</span>}
         </div>
       </div>
-      <div className="flex gap-2 text-xs">
+      <div className="flex gap-2 text-xs flex-wrap">
         <Button size="sm" variant={isAdmin ? "outline" : "default"} onClick={() => roleMut.mutate(!isAdmin)} disabled={roleMut.isPending}>
           {isAdmin ? "Revoke admin" : "Make admin"}
         </Button>
@@ -82,6 +88,11 @@ function UserCard({ u }: { u: any }) {
             </div>
           </DialogContent>
         </Dialog>
+        <Button size="sm" variant="ghost" className="text-destructive ml-auto"
+          disabled={delMut.isPending}
+          onClick={() => { if (confirm(`Permanently delete ${u.email}? This removes their account, wallet, deposits, investments, and all history. Cannot be undone.`)) delMut.mutate(); }}>
+          Delete user
+        </Button>
       </div>
     </div>
   );

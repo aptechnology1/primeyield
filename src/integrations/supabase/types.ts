@@ -136,6 +136,27 @@ export type Database = {
           },
         ]
       }
+      page_content: {
+        Row: {
+          colors: Json
+          content: Json
+          page_key: string
+          updated_at: string
+        }
+        Insert: {
+          colors?: Json
+          content?: Json
+          page_key: string
+          updated_at?: string
+        }
+        Update: {
+          colors?: Json
+          content?: Json
+          page_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           created_at: string
@@ -320,6 +341,7 @@ export type Database = {
           support_contact_link: string
           support_contacts: Json
           support_title: string
+          tasks_enabled: boolean
           updated_at: string
           welcome_bonus_amount: number
           welcome_bonus_withdrawable: boolean
@@ -358,6 +380,7 @@ export type Database = {
           support_contact_link?: string
           support_contacts?: Json
           support_title?: string
+          tasks_enabled?: boolean
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
@@ -396,6 +419,7 @@ export type Database = {
           support_contact_link?: string
           support_contacts?: Json
           support_title?: string
+          tasks_enabled?: boolean
           updated_at?: string
           welcome_bonus_amount?: number
           welcome_bonus_withdrawable?: boolean
@@ -404,6 +428,56 @@ export type Database = {
           withdrawal_fee_pct?: number
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          reward: number
+          sort_order: number
+          target_plan_id: string | null
+          target_value: number
+          task_type: Database["public"]["Enums"]["task_type"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          reward?: number
+          sort_order?: number
+          target_plan_id?: string | null
+          target_value?: number
+          task_type: Database["public"]["Enums"]["task_type"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          reward?: number
+          sort_order?: number
+          target_plan_id?: string | null
+          target_value?: number
+          task_type?: Database["public"]["Enums"]["task_type"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_target_plan_id_fkey"
+            columns: ["target_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -461,6 +535,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_tasks: {
+        Row: {
+          claim_note: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          status: Database["public"]["Enums"]["user_task_status"]
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claim_note?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["user_task_status"]
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claim_note?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["user_task_status"]
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallets: {
         Row: {
@@ -562,6 +677,11 @@ export type Database = {
       deposit_method: "paystack" | "manual"
       investment_status: "active" | "completed" | "cancelled"
       referral_source: "deposit" | "investment" | "roi"
+      task_type:
+        | "refer_users"
+        | "deposit_amount"
+        | "invest_plan"
+        | "manual_claim"
       tx_status: "pending" | "approved" | "rejected" | "completed" | "failed"
       tx_type:
         | "deposit"
@@ -572,6 +692,8 @@ export type Database = {
         | "welcome_bonus"
         | "daily_checkin"
         | "refund"
+        | "reward"
+      user_task_status: "available" | "pending" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -703,6 +825,12 @@ export const Constants = {
       deposit_method: ["paystack", "manual"],
       investment_status: ["active", "completed", "cancelled"],
       referral_source: ["deposit", "investment", "roi"],
+      task_type: [
+        "refer_users",
+        "deposit_amount",
+        "invest_plan",
+        "manual_claim",
+      ],
       tx_status: ["pending", "approved", "rejected", "completed", "failed"],
       tx_type: [
         "deposit",
@@ -713,7 +841,9 @@ export const Constants = {
         "welcome_bonus",
         "daily_checkin",
         "refund",
+        "reward",
       ],
+      user_task_status: ["available", "pending", "completed"],
     },
   },
 } as const

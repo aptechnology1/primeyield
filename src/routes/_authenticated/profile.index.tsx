@@ -82,6 +82,7 @@ function ProfileIndex() {
       <Section title="My Account">
         <Item to="/my-plans" icon={BarChart3} label="My Plans" />
         <Item to="/referrals" icon={Users} label="My Network" />
+        {(data.settings as any)?.tasks_enabled && <Item to="/tasks" icon={BarChart3} label="Tasks" />}
       </Section>
 
 

@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWithdrawHistoryRouteImport } from './routes/_authenticated/withdraw-history'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedReferralsHistoryRouteImport } from './routes/_authenticated/referrals-history'
 import { Route as AuthenticatedReferralsRouteImport } from './routes/_authenticated/referrals'
@@ -32,11 +33,14 @@ import { Route as AuthenticatedProfilePasswordRouteImport } from './routes/_auth
 import { Route as AuthenticatedProfileBankRouteImport } from './routes/_authenticated/profile.bank'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin/withdrawals'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminTasksRouteImport } from './routes/_authenticated/admin/tasks'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin/referrals'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin/plans'
+import { Route as AuthenticatedAdminInvestmentsRouteImport } from './routes/_authenticated/admin/investments'
 import { Route as AuthenticatedAdminInstructionsRouteImport } from './routes/_authenticated/admin/instructions'
 import { Route as AuthenticatedAdminDepositsRouteImport } from './routes/_authenticated/admin/deposits'
+import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin/content'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -69,6 +73,11 @@ const AuthenticatedTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -161,6 +170,11 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminTasksRoute = AuthenticatedAdminTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
@@ -178,6 +192,12 @@ const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
   path: '/plans',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminInvestmentsRoute =
+  AuthenticatedAdminInvestmentsRouteImport.update({
+    id: '/investments',
+    path: '/investments',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminInstructionsRoute =
   AuthenticatedAdminInstructionsRouteImport.update({
     id: '/instructions',
@@ -188,6 +208,12 @@ const AuthenticatedAdminDepositsRoute =
   AuthenticatedAdminDepositsRouteImport.update({
     id: '/deposits',
     path: '/deposits',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminContentRoute =
+  AuthenticatedAdminContentRouteImport.update({
+    id: '/content',
+    path: '/content',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 
@@ -204,14 +230,18 @@ export interface FileRoutesByFullPath {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/support': typeof AuthenticatedSupportRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/withdraw-history': typeof AuthenticatedWithdrawHistoryRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/instructions': typeof AuthenticatedAdminInstructionsRoute
+  '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/profile/bank': typeof AuthenticatedProfileBankRoute
@@ -231,14 +261,18 @@ export interface FileRoutesByTo {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/support': typeof AuthenticatedSupportRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/withdraw-history': typeof AuthenticatedWithdrawHistoryRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/instructions': typeof AuthenticatedAdminInstructionsRoute
+  '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/profile/bank': typeof AuthenticatedProfileBankRoute
@@ -262,14 +296,18 @@ export interface FileRoutesById {
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
   '/_authenticated/referrals-history': typeof AuthenticatedReferralsHistoryRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
+  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/_authenticated/withdraw-history': typeof AuthenticatedWithdrawHistoryRoute
+  '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/_authenticated/admin/instructions': typeof AuthenticatedAdminInstructionsRoute
+  '/_authenticated/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/_authenticated/profile/bank': typeof AuthenticatedProfileBankRoute
@@ -293,14 +331,18 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/referrals-history'
     | '/support'
+    | '/tasks'
     | '/transactions'
     | '/withdraw'
     | '/withdraw-history'
+    | '/admin/content'
     | '/admin/deposits'
     | '/admin/instructions'
+    | '/admin/investments'
     | '/admin/plans'
     | '/admin/referrals'
     | '/admin/settings'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
     | '/profile/bank'
@@ -320,14 +362,18 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/referrals-history'
     | '/support'
+    | '/tasks'
     | '/transactions'
     | '/withdraw'
     | '/withdraw-history'
+    | '/admin/content'
     | '/admin/deposits'
     | '/admin/instructions'
+    | '/admin/investments'
     | '/admin/plans'
     | '/admin/referrals'
     | '/admin/settings'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
     | '/profile/bank'
@@ -350,14 +396,18 @@ export interface FileRouteTypes {
     | '/_authenticated/referrals'
     | '/_authenticated/referrals-history'
     | '/_authenticated/support'
+    | '/_authenticated/tasks'
     | '/_authenticated/transactions'
     | '/_authenticated/withdraw'
     | '/_authenticated/withdraw-history'
+    | '/_authenticated/admin/content'
     | '/_authenticated/admin/deposits'
     | '/_authenticated/admin/instructions'
+    | '/_authenticated/admin/investments'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/referrals'
     | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/tasks'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/withdrawals'
     | '/_authenticated/profile/bank'
@@ -415,6 +465,13 @@ declare module '@tanstack/react-router' {
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/support': {
@@ -536,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/tasks': {
+      id: '/_authenticated/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AuthenticatedAdminTasksRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/settings'
@@ -557,6 +621,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPlansRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/investments': {
+      id: '/_authenticated/admin/investments'
+      path: '/investments'
+      fullPath: '/admin/investments'
+      preLoaderRoute: typeof AuthenticatedAdminInvestmentsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/instructions': {
       id: '/_authenticated/admin/instructions'
       path: '/instructions'
@@ -571,15 +642,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDepositsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/content': {
+      id: '/_authenticated/admin/content'
+      path: '/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AuthenticatedAdminContentRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
   AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
   AuthenticatedAdminInstructionsRoute: typeof AuthenticatedAdminInstructionsRoute
+  AuthenticatedAdminInvestmentsRoute: typeof AuthenticatedAdminInvestmentsRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminTasksRoute: typeof AuthenticatedAdminTasksRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -587,11 +668,14 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
     AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
     AuthenticatedAdminInstructionsRoute: AuthenticatedAdminInstructionsRoute,
+    AuthenticatedAdminInvestmentsRoute: AuthenticatedAdminInvestmentsRoute,
     AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
     AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+    AuthenticatedAdminTasksRoute: AuthenticatedAdminTasksRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -630,6 +714,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReferralsRoute: typeof AuthenticatedReferralsRoute
   AuthenticatedReferralsHistoryRoute: typeof AuthenticatedReferralsHistoryRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
+  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
   AuthenticatedWithdrawHistoryRoute: typeof AuthenticatedWithdrawHistoryRoute
@@ -646,6 +731,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReferralsRoute: AuthenticatedReferralsRoute,
   AuthenticatedReferralsHistoryRoute: AuthenticatedReferralsHistoryRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
+  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
   AuthenticatedWithdrawHistoryRoute: AuthenticatedWithdrawHistoryRoute,
@@ -662,13 +748,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
