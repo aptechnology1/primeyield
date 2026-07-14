@@ -5,7 +5,7 @@ import { getDashboard, claimDailyCheckin } from "@/lib/user.functions";
 import { formatNaira, formatDateTime } from "@/lib/format";
 import { BrandMark } from "@/components/BrandMark";
 import { DashboardPopup } from "@/components/DashboardPopup";
-import { Zap, Copy, ArrowUpRight, ArrowDownLeft, ShieldCheck } from "lucide-react";
+import { Zap, Copy, ArrowUpRight, ArrowDownLeft, ShieldCheck, ListChecks, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 const dashboardQuery = queryOptions({
@@ -115,6 +115,22 @@ function Dashboard() {
             </button>
           </div>
         </section>
+      )}
+
+      {/* Tasks (only if enabled) */}
+      {data.settings?.tasks_enabled && (
+        <Link to="/tasks" className="flex items-center justify-between bg-primary-soft border border-primary/20 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="size-10 bg-card rounded-full border border-primary/10 flex items-center justify-center">
+              <ListChecks className="size-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Tasks</p>
+              <p className="text-[11px] text-muted-foreground">Complete tasks to earn rewards</p>
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-muted-foreground" />
+        </Link>
       )}
 
       {/* Active investments */}
